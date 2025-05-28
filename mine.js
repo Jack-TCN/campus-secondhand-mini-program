@@ -3,7 +3,8 @@ Page({
   data: {
     userInfo: null,
     hasUserInfo: false,
-    canIUseGetUserProfile: false
+    canIUseGetUserProfile: false,
+    myProductsCount: 0
   },
 
   onLoad() {
@@ -17,6 +18,7 @@ Page({
 
   onShow() {
     this.loadUserInfo();
+    this.getMyProductsCount();
   },
 
   loadUserInfo() {
@@ -27,6 +29,24 @@ Page({
         userInfo,
         hasUserInfo: true
       });
+    }
+  },
+
+  async getMyProductsCount() {
+    const openid = wx.getStorageSync('openid');
+    if (!openid) return;
+    
+    try {
+      const db = wx.cloud.database();
+      const countResult = await db.collection('products')
+        .where({ userId: openid })
+        .count();
+      
+      this.setData({
+        myProductsCount: countResult.total
+      });
+    } catch (err) {
+      console.error(err);
     }
   },
 
@@ -62,6 +82,9 @@ Page({
               hasUserInfo: true
             });
             wx.showToast({ title: '登录成功' });
+            
+            // 登录成功后获取商品数量
+            this.getMyProductsCount();
           }
         } catch (err) {
           console.error('登录失败', err);
@@ -69,31 +92,6 @@ Page({
         }
       }
     });
-  },
-
-  // 测试登录方法（仅开发环境使用）
-  testLogin() {
-    const testUserInfo = {
-      nickName: '测试用户',
-      avatarUrl: 'https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132',
-      gender: 1,
-      province: '广东',
-      city: '深圳',
-      country: '中国'
-    };
-    
-    // 模拟openid
-    const testOpenid = 'test_' + Date.now();
-    
-    wx.setStorageSync('userInfo', testUserInfo);
-    wx.setStorageSync('openid', testOpenid);
-    
-    this.setData({ 
-      userInfo: testUserInfo,
-      hasUserInfo: true
-    });
-    
-    wx.showToast({ title: '测试登录成功' });
   },
 
   toMyProducts() {
@@ -145,7 +143,8 @@ Page({
           wx.removeStorageSync('openid');
           this.setData({ 
             userInfo: null,
-            hasUserInfo: false
+            hasUserInfo: false,
+            myProductsCount: 0
           });
           wx.showToast({ title: '已退出登录' });
         }

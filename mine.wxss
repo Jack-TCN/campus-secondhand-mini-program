@@ -52,18 +52,6 @@
   border-radius: 20px;
   border: 1px solid rgba(255,255,255,0.3);
 }
-/* 在原有样式基础上添加 */
-.test-login-btn {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  background: #ff9800;
-  color: #fff;
-  font-size: 14px;
-  padding: 8px 20px;
-  border-radius: 20px;
-  border: none;
-}
 
 .cell-group {
   margin-top: 10px;

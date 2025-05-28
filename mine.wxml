@@ -22,16 +22,6 @@
       bindgetuserinfo="getUserInfo">
       微信授权登录
     </button>
-    
-    <!-- 开发测试登录按钮 -->
-    <button 
-      wx:if="{{!hasUserInfo}}" 
-      class="test-login-btn" 
-      bind:tap="testLogin"
-      type="warn"
-    >
-      开发测试登录
-    </button>
   </view>
 
   <!-- 功能列表 -->
@@ -41,6 +31,7 @@
       is-link 
       icon="shop-o"
       bind:click="toMyProducts"
+      value="{{myProductsCount > 0 ? myProductsCount + '件' : ''}}"
     />
     <van-cell 
       title="我的收藏" 

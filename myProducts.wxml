@@ -1,0 +1,207 @@
+<!-- pages/myProducts/myProducts.wxml -->
+<view class="my-products-container">
+  <van-nav-bar
+    title="我的商品"
+    left-arrow
+    bind:click-left="onBack"
+    custom-class="nav-bar"
+  />
+
+  <!-- 统计卡片 -->
+  <view class="stats-cards">
+    <view class="stat-card gradient-blue">
+      <view class="stat-number">{{stats.total}}</view>
+      <view class="stat-label">全部商品</view>
+      <van-icon name="apps-o" custom-class="stat-icon" />
+    </view>
+    <view class="stat-card gradient-green">
+      <view class="stat-number">{{stats.onSale}}</view>
+      <view class="stat-label">在售中</view>
+      <van-icon name="shop-o" custom-class="stat-icon" />
+    </view>
+    <view class="stat-card gradient-orange">
+      <view class="stat-number">{{stats.sold}}</view>
+      <view class="stat-label">已售出</view>
+      <van-icon name="completed" custom-class="stat-icon" />
+    </view>
+  </view>
+
+  <!-- Tab切换 -->
+  <van-tabs 
+    active="{{ activeTab }}" 
+    bind:change="onTabChange"
+    color="#667eea"
+    line-width="40"
+    animated
+    swipeable
+  >
+    <van-tab title="在售({{onSaleProducts.length}})">
+      <view wx:if="{{!loading && onSaleProducts.length === 0}}" class="empty">
+        <image src="/images/empty.png" class="empty-image" />
+        <text class="empty-text">暂无在售商品</text>
+        <van-button plain round size="small" bind:click="goPublish" custom-class="empty-btn">
+          去发布
+        </van-button>
+      </view>
+      
+      <view wx:else class="product-grid">
+        <view class="product-card" wx:for="{{onSaleProducts}}" wx:key="_id">
+          <view class="card-header">
+            <view class="status-badge on-sale">在售</view>
+            <view class="more-btn" bind:tap="showActions" data-product="{{item}}">
+              <van-icon name="ellipsis" />
+            </view>
+          </view>
+          
+          <view class="card-body" bind:tap="toDetail" data-id="{{item._id}}">
+            <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+            <view class="product-info">
+              <text class="product-title">{{item.title}}</text>
+              <view class="price-row">
+                <text class="price">¥{{item.price}}</text>
+                <text class="original-price" wx:if="{{item.originalPrice}}">
+                  ¥{{item.originalPrice}}
+                </text>
+              </view>
+              <view class="stats-row">
+                <text class="stat">
+                  <van-icon name="eye-o" size="12px" /> {{item.viewCount || 0}}
+                </text>
+                <text class="stat">
+                  <van-icon name="star-o" size="12px" /> {{item.likeCount || 0}}
+                </text>
+                <text class="time">{{item.timeStr}}</text>
+              </view>
+            </view>
+          </view>
+          
+          <view class="card-footer">
+            <van-button 
+              size="mini" 
+              custom-class="action-btn edit-btn"
+              icon="edit"
+              bind:click="editProduct"
+              data-id="{{item._id}}"
+            >
+              编辑
+            </van-button>
+            <van-button 
+              size="mini" 
+              custom-class="action-btn off-btn"
+              icon="pause-circle-o"
+              bind:click="toggleStatus"
+              data-id="{{item._id}}"
+              data-status="{{item.status}}"
+            >
+              下架
+            </van-button>
+          </view>
+        </view>
+      </view>
+    </van-tab>
+
+    <van-tab title="已下架({{offSaleProducts.length}})">
+      <view wx:if="{{!loading && offSaleProducts.length === 0}}" class="empty">
+        <image src="/images/empty.png" class="empty-image" />
+        <text class="empty-text">暂无下架商品</text>
+      </view>
+      
+      <view wx:else class="product-grid">
+        <view class="product-card off-shelf" wx:for="{{offSaleProducts}}" wx:key="_id">
+          <view class="card-header">
+            <view class="status-badge off-sale">已下架</view>
+            <view class="more-btn" bind:tap="showActions" data-product="{{item}}">
+              <van-icon name="ellipsis" />
+            </view>
+          </view>
+          
+          <view class="card-body" bind:tap="toDetail" data-id="{{item._id}}">
+            <image class="product-image grayscale" src="{{item.images[0]}}" mode="aspectFill" />
+            <view class="product-info">
+              <text class="product-title">{{item.title}}</text>
+              <view class="price-row">
+                <text class="price">¥{{item.price}}</text>
+              </view>
+              <view class="stats-row">
+                <text class="stat">
+                  <van-icon name="eye-o" size="12px" /> {{item.viewCount || 0}}
+                </text>
+                <text class="stat">
+                  <van-icon name="star-o" size="12px" /> {{item.likeCount || 0}}
+                </text>
+                <text class="time">{{item.timeStr}}</text>
+              </view>
+            </view>
+          </view>
+          
+          <view class="card-footer">
+            <van-button 
+              size="mini" 
+              custom-class="action-btn on-btn"
+              icon="play-circle-o"
+              bind:click="toggleStatus"
+              data-id="{{item._id}}"
+              data-status="{{item.status}}"
+            >
+              上架
+            </van-button>
+            <van-button 
+              size="mini" 
+              custom-class="action-btn delete-btn"
+              icon="delete-o"
+              bind:click="deleteProduct"
+              data-id="{{item._id}}"
+            >
+              删除
+            </van-button>
+          </view>
+        </view>
+      </view>
+    </van-tab>
+
+    <van-tab title="已售出({{soldProducts.length}})">
+      <view wx:if="{{!loading && soldProducts.length === 0}}" class="empty">
+        <image src="/images/empty.png" class="empty-image" />
+        <text class="empty-text">暂无售出记录</text>
+      </view>
+      
+      <view wx:else class="product-grid">
+        <view class="product-card sold" wx:for="{{soldProducts}}" wx:key="_id">
+          <view class="card-header">
+            <view class="status-badge sold">已售出</view>
+            <text class="sold-time">{{item.soldTimeStr}}</text>
+          </view>
+          
+          <view class="card-body">
+            <image class="product-image" src="{{item.images[0]}}" mode="aspectFill" />
+            <view class="product-info">
+              <text class="product-title">{{item.title}}</text>
+              <view class="price-row">
+                <text class="price sold-price">¥{{item.price}}</text>
+                <van-tag type="success" size="small">成交</van-tag>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </van-tab>
+  </van-tabs>
+
+  <!-- 悬浮按钮 -->
+  <view class="fab" bind:tap="goPublish">
+    <van-icon name="plus" color="#fff" size="24px" />
+  </view>
+
+  <!-- 操作菜单 -->
+  <van-action-sheet
+    show="{{ showActionSheet }}"
+    actions="{{ actions }}"
+    bind:close="onActionClose"
+    bind:select="onActionSelect"
+    cancel-text="取消"
+  />
+
+  <van-loading wx:if="{{loading}}" custom-class="loading" size="24px">
+    加载中...
+  </van-loading>
+</view>
