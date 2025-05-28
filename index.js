@@ -13,7 +13,7 @@ Page({
       { id: 'all', name: '全部', icon: '🏠' },
       { id: 'books', name: '教材书籍', icon: '📚' },
       { id: 'digital', name: '电子数码', icon: '📱' },
-      { id: 'life', name: '生活用品', icon: '🏠' },
+      { id: 'life', name: '生活用品', icon: '🛒' },
       { id: 'clothes', name: '服饰鞋包', icon: '👔' },
       { id: 'sports', name: '体育用品', icon: '⚽' },
       { id: 'other', name: '其他物品', icon: '📦' }
@@ -26,26 +26,42 @@ Page({
 
   onLoad() {
     this.loadProducts();
+    this.checkLogin();
   },
 
   onShow() {
     // 从发布页返回时刷新
-    if (this.data.needRefresh) {
-      this.setData({ needRefresh: false });
-      this.onPullDownRefresh();
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      const prevPage = pages[pages.length - 2];
+      if (prevPage.route === 'pages/publish/publish') {
+        this.onPullDownRefresh();
+      }
     }
   },
 
-  onPullDownRefresh() {
+  async checkLogin() {
+    // 静默获取用户openid
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'login'
+      });
+      if (res.result.openid) {
+        wx.setStorageSync('openid', res.result.openid);
+      }
+    } catch (err) {
+      console.error('获取openid失败', err);
+    }
+  },
+
+  async onPullDownRefresh() {
     this.setData({ 
       page: 1, 
       hasMore: true,
       refreshing: true 
     });
-    this.loadProducts().then(() => {
-      wx.stopPullDownRefresh();
-      this.setData({ refreshing: false });
-    });
+    await this.loadProducts();
+    this.setData({ refreshing: false });
   },
 
   onReachBottom() {
@@ -84,9 +100,19 @@ Page({
         .limit(this.data.pageSize)
         .get();
       
+      // 处理商品数据
+      const conditionMap = {
+        'new': '全新',
+        '99new': '99成新',
+        '95new': '95成新',
+        '90new': '9成新',
+        '80new': '8成新',
+        'other': '其他'
+      };
+      
       const products = res.data.map(item => ({
         ...item,
-        image: item.images?.[0] || '/images/default-product.jpg',
+        conditionText: conditionMap[item.condition] || item.condition,
         createTimeStr: this.formatTime(item.createTime)
       }));
       
@@ -121,7 +147,7 @@ Page({
     if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
     if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
     
-    return target.toLocaleDateString();
+    return `${target.getMonth() + 1}-${target.getDate()}`;
   },
 
   onCategoryTap(e) {
@@ -156,7 +182,7 @@ Page({
   },
 
   onSearch(e) {
-    const value = e.detail;
+    const value = e.detail.trim();
     this.setData({ 
       searchValue: value,
       page: 1,
@@ -174,14 +200,5 @@ Page({
       products: []
     });
     this.loadProducts();
-  },
-
-  toPublish() {
-    wx.navigateTo({ 
-      url: '/pages/publish/publish',
-      success: () => {
-        this.setData({ needRefresh: true });
-      }
-    });
   }
 });

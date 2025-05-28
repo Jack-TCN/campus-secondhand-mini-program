@@ -2,15 +2,25 @@
 <view class="mine-container">
   <!-- 用户信息区 -->
   <view class="user-section">
-    <view class="user-info">
-      <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" />
+    <view class="user-info" wx:if="{{hasUserInfo}}">
+      <image class="avatar" src="{{userInfo.avatarUrl}}" />
       <view class="info">
-        <text class="nickname">{{userInfo.nickName || '未登录'}}</text>
-        <text class="desc">{{userInfo.school || '点击登录'}}</text>
+        <text class="nickname">{{userInfo.nickName}}</text>
+        <text class="desc">{{userInfo.city || '欢迎使用神来闲置'}}</text>
       </view>
     </view>
-    <button wx:if="{{!userInfo}}" class="login-btn" open-type="getUserInfo" bindgetuserinfo="getUserInfo">
-      授权登录
+    
+    <button wx:if="{{!hasUserInfo && canIUseGetUserProfile}}" 
+      class="login-btn" 
+      bind:tap="getUserProfile">
+      微信一键登录
+    </button>
+    
+    <button wx:elif="{{!hasUserInfo}}" 
+      class="login-btn" 
+      open-type="getUserInfo" 
+      bindgetuserinfo="getUserInfo">
+      微信授权登录
     </button>
   </view>
 
@@ -57,7 +67,7 @@
     />
   </van-cell-group>
 
-  <view class="logout-btn" wx:if="{{userInfo}}" bindtap="logout">
+  <view class="logout-btn" wx:if="{{hasUserInfo}}" bind:tap="logout">
     退出登录
   </view>
 </view>

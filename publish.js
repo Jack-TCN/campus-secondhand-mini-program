@@ -230,11 +230,28 @@ Page({
       return wx.showToast({ title: '请至少上传一张图片', icon: 'none' });
     }
 
+    // 验证联系方式格式
+    if (form.contactType === 'phone') {
+      const phoneReg = /^1[3-9]\d{9}$/;
+      if (!phoneReg.test(form.contactValue)) {
+        return wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      }
+    }
+
     wx.showLoading({ title: this.data.isEdit ? '保存中...' : '发布中...' });
 
     try {
       const userInfo = wx.getStorageSync('userInfo') || {};
       const openid = wx.getStorageSync('openid') || '';
+      
+      if (!openid) {
+        wx.hideLoading();
+        wx.showToast({ title: '请先登录', icon: 'none' });
+        setTimeout(() => {
+          wx.switchTab({ url: '/pages/mine/mine' });
+        }, 1500);
+        return;
+      }
       
       const productData = {
         title: form.title,
@@ -261,9 +278,11 @@ Page({
       };
 
       if (!this.data.isEdit) {
+        // 新建商品
         productData.createTime = db.serverDate();
         await db.collection('products').add({ data: productData });
       } else {
+        // 编辑商品
         delete productData.viewCount;
         delete productData.likeCount;
         await db.collection('products').doc(this.data.productId).update({ data: productData });
@@ -272,17 +291,62 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: this.data.isEdit ? '保存成功' : '发布成功' });
       
+      // 延迟返回，让用户看到成功提示
       setTimeout(() => {
+        // 获取页面栈
+        const pages = getCurrentPages();
+        
         if (this.data.isEdit) {
+          // 编辑模式直接返回
           wx.navigateBack();
         } else {
-          wx.switchTab({ url: '/pages/index/index' });
+          // 新发布模式
+          if (pages.length > 1) {
+            // 如果有上一页，返回并刷新
+            const prevPage = pages[pages.length - 2];
+            
+            // 通知上一页需要刷新
+            if (prevPage.route === 'pages/index/index') {
+              // 如果上一页是首页，设置刷新标志
+              prevPage.setData({ needRefresh: true });
+            }
+            
+            wx.navigateBack({
+              success: () => {
+                // 返回成功后，如果上一页是首页，触发刷新
+                if (prevPage.route === 'pages/index/index' && prevPage.onPullDownRefresh) {
+                  setTimeout(() => {
+                    prevPage.onPullDownRefresh();
+                  }, 100);
+                }
+              }
+            });
+          } else {
+            // 如果没有上一页，跳转到首页
+            wx.switchTab({ 
+              url: '/pages/index/index',
+              success: () => {
+                // 获取首页实例并刷新
+                const indexPages = getCurrentPages();
+                const indexPage = indexPages.find(p => p.route === 'pages/index/index');
+                if (indexPage && indexPage.onPullDownRefresh) {
+                  setTimeout(() => {
+                    indexPage.onPullDownRefresh();
+                  }, 100);
+                }
+              }
+            });
+          }
         }
       }, 1500);
+      
     } catch (err) {
-      console.error(err);
+      console.error('发布/保存失败：', err);
       wx.hideLoading();
-      wx.showToast({ title: this.data.isEdit ? '保存失败' : '发布失败', icon: 'none' });
+      wx.showToast({ 
+        title: this.data.isEdit ? '保存失败' : '发布失败', 
+        icon: 'none' 
+      });
     }
   }
 });

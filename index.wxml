@@ -5,23 +5,16 @@
     <van-search
       value="{{ searchValue }}"
       placeholder="🔍 搜索神来闲置商品"
-      background="transparent"
+      background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
       shape="round"
       bind:search="onSearch"
+      bind:clear="onSearchClear"
     />
   </view>
 
   <!-- 分类导航 -->
   <scroll-view class="category-scroll" scroll-x>
     <view class="category-list">
-      <view 
-        class="category-item {{currentCategory === 'all' ? 'active' : ''}}"
-        bind:tap="onCategoryTap"
-        data-category="all"
-      >
-        <text class="category-icon">🏠</text>
-        <text class="category-name">全部</text>
-      </view>
       <view 
         wx:for="{{categories}}" 
         wx:key="id"
@@ -41,6 +34,9 @@
     class="products-scroll"
     bindscrolltolower="onReachBottom"
     enable-back-to-top
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onPullDownRefresh"
   >
     <view class="products-grid">
       <view 
@@ -50,12 +46,23 @@
         bind:tap="toDetail" 
         data-id="{{item._id}}"
       >
-        <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="card-image-wrapper">
+          <image class="product-image" src="{{item.images[0] || '/images/default-product.jpg'}}" mode="aspectFill" />
+          <view class="condition-tag">{{item.conditionText}}</view>
+        </view>
+        
         <view class="product-info">
           <text class="product-title">{{item.title}}</text>
-          <view class="product-bottom">
+          
+          <view class="price-row">
             <text class="product-price">¥{{item.price}}</text>
-            <van-tag type="primary" plain size="small">{{item.condition}}</van-tag>
+            <text class="original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+          </view>
+          
+          <view class="seller-row">
+            <image class="seller-avatar" src="{{item.userInfo.avatarUrl || '/images/default-avatar.png'}}" />
+            <text class="seller-name">{{item.userInfo.nickName || '匿名'}}</text>
+            <text class="publish-time">{{item.createTimeStr}}</text>
           </view>
         </view>
       </view>
@@ -66,7 +73,11 @@
       <van-loading size="24px">加载中...</van-loading>
     </view>
     <view class="no-more" wx:if="{{!hasMore && products.length > 0}}">
-      <text>没有更多了~</text>
+      <text>— 没有更多了 —</text>
+    </view>
+    <view class="empty" wx:if="{{!loading && products.length === 0}}">
+      <image src="/images/empty.png" class="empty-image" />
+      <text>暂无商品</text>
     </view>
   </scroll-view>
 

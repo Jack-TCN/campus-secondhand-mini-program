@@ -1,41 +1,199 @@
 // pages/detail/detail.js
+const db = wx.cloud.database();
+const app = getApp();
+
 Page({
   data: {
     productId: '',
-    product: {}
+    product: null,
+    loading: true,
+    isFavorite: false,
+    currentImageIndex: 0,
+    conditionText: '',
+    categoryText: '',
+    createTimeStr: ''
   },
-  
+
   onLoad(options) {
-    // 获取商品ID
-    if (options.id) {
-      this.setData({ productId: options.id });
-      // TODO: 根据ID加载商品详情
-    }
+    this.setData({ productId: options.id });
+    this.loadProduct();
+    this.checkFavorite();
   },
-  
+
   onBack() {
     wx.navigateBack();
   },
-  
-  startChat() {
-    wx.showToast({ 
-      title: '聊天功能待实现', 
-      icon: 'none' 
+
+  async loadProduct() {
+    try {
+      const res = await db.collection('products')
+        .doc(this.data.productId)
+        .get();
+      
+      const product = res.data;
+      
+      // 获取分类和新旧程度的中文名称
+      const categoryMap = {
+        'books': '教材书籍',
+        'digital': '电子数码',
+        'life': '生活用品',
+        'clothes': '服饰鞋包',
+        'sports': '体育用品',
+        'other': '其他物品'
+      };
+      
+      const conditionMap = {
+        'new': '全新',
+        '99new': '99成新',
+        '95new': '95成新',
+        '90new': '9成新',
+        '80new': '8成新',
+        'other': '其他'
+      };
+      
+      this.setData({
+        product,
+        categoryText: categoryMap[product.category] || product.category,
+        conditionText: conditionMap[product.condition] || product.condition,
+        createTimeStr: this.formatTime(product.createTime),
+        loading: false
+      });
+      
+      // 增加浏览量
+      this.increaseViewCount();
+    } catch (err) {
+      console.error(err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
+      this.setData({ loading: false });
+    }
+  },
+
+  formatTime(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  },
+
+  increaseViewCount() {
+    db.collection('products')
+      .doc(this.data.productId)
+      .update({
+        data: {
+          viewCount: db.command.inc(1)
+        }
+      });
+  },
+
+  async checkFavorite() {
+    const openid = wx.getStorageSync('openid');
+    if (!openid) return;
+
+    try {
+      const res = await db.collection('favorites')
+        .where({
+          userId: openid,
+          productId: this.data.productId
+        })
+        .get();
+      
+      this.setData({ isFavorite: res.data.length > 0 });
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
+  async toggleFavorite() {
+    const openid = wx.getStorageSync('openid');
+    if (!openid) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
+
+    try {
+      if (this.data.isFavorite) {
+        // 取消收藏
+        await db.collection('favorites')
+          .where({
+            userId: openid,
+            productId: this.data.productId
+          })
+          .remove();
+        
+        this.setData({ isFavorite: false });
+        wx.showToast({ title: '已取消收藏' });
+        
+        // 更新商品收藏数
+        await db.collection('products')
+          .doc(this.data.productId)
+          .update({
+            data: {
+              likeCount: db.command.inc(-1)
+            }
+          });
+      } else {
+        // 添加收藏
+        await db.collection('favorites')
+          .add({
+            data: {
+              userId: openid,
+              productId: this.data.productId,
+              createTime: db.serverDate()
+            }
+          });
+        
+        this.setData({ isFavorite: true });
+        wx.showToast({ title: '收藏成功' });
+        
+        // 更新商品收藏数
+        await db.collection('products')
+          .doc(this.data.productId)
+          .update({
+            data: {
+              likeCount: db.command.inc(1)
+            }
+          });
+      }
+    } catch (err) {
+      console.error(err);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    }
+  },
+
+  contactSeller() {
+    const { product } = this.data;
+    if (!product.contact) {
+      wx.showToast({ title: '暂无联系方式', icon: 'none' });
+      return;
+    }
+    
+    if (product.contact.type === 'wechat') {
+      wx.setClipboardData({
+        data: product.contact.value,
+        success() {
+          wx.showToast({ title: '微信号已复制' });
+        }
+      });
+    } else if (product.contact.type === 'phone') {
+      wx.makePhoneCall({
+        phoneNumber: product.contact.value
+      });
+    }
+  },
+
+  previewImage(e) {
+    const index = e.currentTarget.dataset.index;
+    wx.previewImage({
+      current: this.data.product.images[index],
+      urls: this.data.product.images
     });
   },
-  
-  mockPay() {
-    wx.showModal({
-      title: '提示',
-      content: '确认购买该商品？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showToast({ 
-            title: '购买成功',
-            icon: 'success'
-          });
-        }
-      }
-    });
+
+  onShareAppMessage() {
+    const { product } = this.data;
+    return {
+      title: product.title,
+      path: `/pages/detail/detail?id=${product._id}`,
+      imageUrl: product.images[0]
+    };
   }
 });

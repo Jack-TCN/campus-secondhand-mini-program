@@ -1,10 +1,17 @@
 // pages/mine/mine.js
 Page({
   data: {
-    userInfo: null
+    userInfo: null,
+    hasUserInfo: false,
+    canIUseGetUserProfile: false
   },
 
   onLoad() {
+    if (wx.getUserProfile) {
+      this.setData({
+        canIUseGetUserProfile: true
+      });
+    }
     this.loadUserInfo();
   },
 
@@ -14,17 +21,54 @@ Page({
 
   loadUserInfo() {
     const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
-      this.setData({ userInfo });
+    const openid = wx.getStorageSync('openid');
+    if (userInfo && openid) {
+      this.setData({ 
+        userInfo,
+        hasUserInfo: true
+      });
     }
   },
 
-  getUserInfo(e) {
-    if (e.detail.userInfo) {
-      wx.setStorageSync('userInfo', e.detail.userInfo);
-      this.setData({ userInfo: e.detail.userInfo });
-      wx.showToast({ title: '登录成功' });
-    }
+  getUserProfile() {
+    wx.getUserProfile({
+      desc: '用于完善用户资料',
+      success: async (res) => {
+        const userInfo = res.userInfo;
+        
+        // 获取openid
+        try {
+          const loginRes = await wx.cloud.callFunction({
+            name: 'login'
+          });
+          
+          if (loginRes.result.openid) {
+            wx.setStorageSync('openid', loginRes.result.openid);
+            wx.setStorageSync('userInfo', userInfo);
+            
+            // 保存到数据库
+            const db = wx.cloud.database();
+            await db.collection('users').add({
+              data: {
+                openid: loginRes.result.openid,
+                ...userInfo,
+                createTime: db.serverDate(),
+                updateTime: db.serverDate()
+              }
+            });
+            
+            this.setData({ 
+              userInfo,
+              hasUserInfo: true
+            });
+            wx.showToast({ title: '登录成功' });
+          }
+        } catch (err) {
+          console.error('登录失败', err);
+          wx.showToast({ title: '登录失败', icon: 'none' });
+        }
+      }
+    });
   },
 
   toMyProducts() {
@@ -48,15 +92,18 @@ Page({
   },
 
   toHelp() {
-    wx.navigateTo({ url: '/pages/help/help' });
+    wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
   toAbout() {
-    wx.navigateTo({ url: '/pages/about/about' });
+    wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
   checkLogin() {
-    if (!this.data.userInfo) {
+    const openid = wx.getStorageSync('openid');
+    const userInfo = wx.getStorageSync('userInfo');
+    
+    if (!openid || !userInfo) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return false;
     }
@@ -71,7 +118,10 @@ Page({
         if (res.confirm) {
           wx.removeStorageSync('userInfo');
           wx.removeStorageSync('openid');
-          this.setData({ userInfo: null });
+          this.setData({ 
+            userInfo: null,
+            hasUserInfo: false
+          });
           wx.showToast({ title: '已退出登录' });
         }
       }
