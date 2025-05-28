@@ -1,2 +1,123 @@
-<!--pages/my-products/my-products.wxml-->
-<text>pages/my-products/my-products.wxml</text>
+<!-- pages/myProducts/myProducts.wxml -->
+<view class="my-products-container">
+  <van-nav-bar
+    title="我发布的"
+    left-arrow
+    bind:click-left="onBack"
+  />
+
+  <van-tabs active="{{ activeTab }}" bind:change="onTabChange">
+    <van-tab title="在售({{onSaleCount}})">
+      <view wx:if="{{!loading && onSaleProducts.length === 0}}" class="empty">
+        <image src="/images/empty.png" class="empty-image" />
+        <text class="empty-text">暂无在售商品</text>
+        <van-button plain round size="small" bind:click="goPublish">去发布</van-button>
+      </view>
+      
+      <view wx:else class="product-list">
+        <view class="product-item" wx:for="{{onSaleProducts}}" wx:key="_id">
+          <image 
+            class="item-image" 
+            src="{{item.images[0]}}" 
+            mode="aspectFill"
+            bind:tap="toDetail"
+            data-id="{{item._id}}"
+          />
+          <view class="item-content">
+            <view class="item-info" bind:tap="toDetail" data-id="{{item._id}}">
+              <text class="item-title">{{item.title}}</text>
+              <view class="item-stats">
+                <text class="stat-item">浏览 {{item.viewCount || 0}}</text>
+                <text class="stat-item">收藏 {{item.likeCount || 0}}</text>
+              </view>
+              <text class="item-price">¥{{item.price}}</text>
+            </view>
+            <view class="item-actions">
+              <van-button 
+                size="mini" 
+                plain 
+                bind:click="editProduct"
+                data-id="{{item._id}}"
+              >
+                编辑
+              </van-button>
+              <van-button 
+                size="mini" 
+                plain 
+                type="warning"
+                bind:click="toggleStatus"
+                data-id="{{item._id}}"
+                data-status="{{item.status}}"
+              >
+                下架
+              </van-button>
+              <van-button 
+                size="mini" 
+                plain 
+                type="danger"
+                bind:click="deleteProduct"
+                data-id="{{item._id}}"
+              >
+                删除
+              </van-button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </van-tab>
+
+    <van-tab title="已下架({{offSaleCount}})">
+      <view wx:if="{{!loading && offSaleProducts.length === 0}}" class="empty">
+        <image src="/images/empty.png" class="empty-image" />
+        <text class="empty-text">暂无下架商品</text>
+      </view>
+      
+      <view wx:else class="product-list">
+        <view class="product-item" wx:for="{{offSaleProducts}}" wx:key="_id">
+          <image 
+            class="item-image" 
+            src="{{item.images[0]}}" 
+            mode="aspectFill"
+            bind:tap="toDetail"
+            data-id="{{item._id}}"
+          />
+          <view class="item-content">
+            <view class="item-info" bind:tap="toDetail" data-id="{{item._id}}">
+              <text class="item-title">{{item.title}}</text>
+              <view class="item-stats">
+                <text class="stat-item">浏览 {{item.viewCount || 0}}</text>
+                <text class="stat-item">收藏 {{item.likeCount || 0}}</text>
+              </view>
+              <text class="item-price">¥{{item.price}}</text>
+            </view>
+            <view class="item-actions">
+              <van-button 
+                size="mini" 
+                plain 
+                type="primary"
+                bind:click="toggleStatus"
+                data-id="{{item._id}}"
+                data-status="{{item.status}}"
+              >
+                上架
+              </van-button>
+              <van-button 
+                size="mini" 
+                plain 
+                type="danger"
+                bind:click="deleteProduct"
+                data-id="{{item._id}}"
+              >
+                删除
+              </van-button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </van-tab>
+  </van-tabs>
+
+  <van-loading wx:if="{{loading}}" custom-class="loading" size="24px">
+    加载中...
+  </van-loading>
+</view>

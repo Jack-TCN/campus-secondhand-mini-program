@@ -86,6 +86,7 @@
         </view>
         <view class="upload-btn" wx:if="{{form.images.length < 9}}" bind:tap="chooseImage">
           <van-icon name="plus" size="24px" color="#999" />
+          <text class="upload-text">添加图片</text>
         </view>
       </view>
     </view>
@@ -99,6 +100,8 @@
   <van-popup show="{{showCategory}}" position="bottom">
     <van-picker
       columns="{{categoryColumns}}"
+      show-toolbar
+      title="选择分类"
       bind:confirm="onCategoryConfirm"
       bind:cancel="onCategoryCancel"
     />
@@ -108,6 +111,8 @@
   <van-popup show="{{showCondition}}" position="bottom">
     <van-picker
       columns="{{conditionColumns}}"
+      show-toolbar
+      title="选择新旧程度"
       bind:confirm="onConditionConfirm"
       bind:cancel="onConditionCancel"
     />

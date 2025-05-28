@@ -3,7 +3,9 @@
     "pages/index/index",
     "pages/publish/publish",
     "pages/detail/detail",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/favorites/favorites",
+    "pages/myProducts/myProducts"
   ],
   "window": {
     "navigationBarTitleText": "神来闲置",

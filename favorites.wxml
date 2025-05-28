@@ -1,2 +1,46 @@
-<!--pages/favorites/favorites.wxml-->
-<text>pages/favorites/favorites.wxml</text>
+<!-- pages/favorites/favorites.wxml -->
+<view class="favorites-container">
+  <van-nav-bar
+    title="我的收藏"
+    left-arrow
+    bind:click-left="onBack"
+  />
+
+  <view wx:if="{{!loading && favorites.length === 0}}" class="empty">
+    <image src="/images/empty.png" class="empty-image" />
+    <text class="empty-text">暂无收藏商品</text>
+    <van-button plain round size="small" bind:click="goHome">去逛逛</van-button>
+  </view>
+
+  <view wx:else class="favorites-list">
+    <view 
+      class="favorite-item" 
+      wx:for="{{favorites}}" 
+      wx:key="_id"
+      bind:tap="toDetail"
+      data-id="{{item._id}}"
+    >
+      <image class="item-image" src="{{item.images[0]}}" mode="aspectFill" />
+      <view class="item-info">
+        <text class="item-title">{{item.title}}</text>
+        <text class="item-desc">{{item.desc}}</text>
+        <view class="item-bottom">
+          <text class="item-price">¥{{item.price}}</text>
+          <van-tag type="primary" plain size="small">{{item.condition}}</van-tag>
+        </view>
+      </view>
+      <van-icon 
+        name="delete-o" 
+        size="20px" 
+        color="#999"
+        catch:tap="removeFavorite"
+        data-id="{{item._id}}"
+        custom-class="delete-icon"
+      />
+    </view>
+  </view>
+
+  <van-loading wx:if="{{loading}}" custom-class="loading" size="24px">
+    加载中...
+  </van-loading>
+</view>

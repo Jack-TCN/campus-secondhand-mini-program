@@ -3,70 +3,79 @@ const db = wx.cloud.database();
 
 Page({
   data: {
-    products: [],
-    loading: false,
     activeTab: 0,
-    tabs: ['在售', '已下架']
+    onSaleProducts: [],
+    offSaleProducts: [],
+    onSaleCount: 0,
+    offSaleCount: 0,
+    loading: false
   },
 
   onLoad() {
     this.loadProducts();
   },
 
-  onTabChange(e) {
-    this.setData({ activeTab: e.detail.index });
+  onShow() {
     this.loadProducts();
   },
 
-  loadProducts() {
-    const userId = wx.getStorageSync('userId');
-    if (!userId) {
+  onBack() {
+    wx.navigateBack();
+  },
+
+  goPublish() {
+    wx.navigateTo({ url: '/pages/publish/publish' });
+  },
+
+  onTabChange(e) {
+    this.setData({ activeTab: e.detail.index });
+  },
+
+  async loadProducts() {
+    const openid = wx.getStorageSync('openid');
+    if (!openid) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
     this.setData({ loading: true });
-    
-    const status = this.data.activeTab === 0 ? 'on_sale' : 'off_shelf';
-    
-    db.collection('products')
-      .where({ userId, status })
-      .orderBy('createTime', 'desc')
-      .get()
-      .then(res => {
-        this.setData({
-          products: res.data,
-          loading: false
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        wx.showToast({ title: '加载失败', icon: 'none' });
-        this.setData({ loading: false });
+
+    try {
+      // 获取在售商品
+      const onSaleRes = await db.collection('products')
+        .where({ 
+          userId: openid,
+          status: 'on_sale'
+        })
+        .orderBy('createTime', 'desc')
+        .get();
+
+      // 获取已下架商品
+      const offSaleRes = await db.collection('products')
+        .where({ 
+          userId: openid,
+          status: 'off_shelf'
+        })
+        .orderBy('updateTime', 'desc')
+        .get();
+
+      this.setData({
+        onSaleProducts: onSaleRes.data,
+        offSaleProducts: offSaleRes.data,
+        onSaleCount: onSaleRes.data.length,
+        offSaleCount: offSaleRes.data.length,
+        loading: false
       });
+    } catch (err) {
+      console.error(err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
+      this.setData({ loading: false });
+    }
   },
 
-  toggleStatus(e) {
-    const { id, status } = e.currentTarget.dataset;
-    const newStatus = status === 'on_sale' ? 'off_shelf' : 'on_sale';
-    
-    wx.showModal({
-      title: '提示',
-      content: `确定要${newStatus === 'on_sale' ? '上架' : '下架'}该商品吗？`,
-      success: res => {
-        if (res.confirm) {
-          db.collection('products')
-            .doc(id)
-            .update({
-              data: { status: newStatus }
-            })
-            .then(() => {
-              wx.showToast({ title: '操作成功' });
-              this.loadProducts();
-            });
-        }
-      }
-    });
+  toDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
   },
 
   editProduct(e) {
@@ -74,27 +83,68 @@ Page({
     wx.navigateTo({ url: `/pages/publish/publish?id=${id}&edit=true` });
   },
 
-  deleteProduct(e) {
-    const id = e.currentTarget.dataset.id;
+  toggleStatus(e) {
+    const { id, status } = e.currentTarget.dataset;
+    const newStatus = status === 'on_sale' ? 'off_shelf' : 'on_sale';
+    const action = newStatus === 'on_sale' ? '上架' : '下架';
     
     wx.showModal({
       title: '提示',
-      content: '确定要删除该商品吗？',
-      success: res => {
+      content: `确定要${action}该商品吗？`,
+      success: async (res) => {
         if (res.confirm) {
-          db.collection('products')
-            .doc(id)
-            .remove()
-            .then(() => {
-              wx.showToast({ title: '删除成功' });
-              this.loadProducts();
-            });
+          wx.showLoading({ title: '处理中...' });
+          try {
+            await db.collection('products')
+              .doc(id)
+              .update({
+                data: { 
+                  status: newStatus,
+                  updateTime: db.serverDate()
+                }
+              });
+            
+            wx.hideLoading();
+            wx.showToast({ title: `${action}成功` });
+            this.loadProducts();
+          } catch (err) {
+            wx.hideLoading();
+            console.error(err);
+            wx.showToast({ title: '操作失败', icon: 'none' });
+          }
         }
       }
     });
   },
 
-  onBack() {
-    wx.navigateBack();
+  deleteProduct(e) {
+    const id = e.currentTarget.dataset.id;
+    
+    wx.showModal({
+      title: '提示',
+      content: '确定要删除该商品吗？删除后不可恢复',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...' });
+          try {
+            // 删除商品
+            await db.collection('products').doc(id).remove();
+            
+            // 删除相关的收藏记录
+            await db.collection('favorites')
+              .where({ productId: id })
+              .remove();
+            
+            wx.hideLoading();
+            wx.showToast({ title: '删除成功' });
+            this.loadProducts();
+          } catch (err) {
+            wx.hideLoading();
+            console.error(err);
+            wx.showToast({ title: '删除失败', icon: 'none' });
+          }
+        }
+      }
+    });
   }
 });
