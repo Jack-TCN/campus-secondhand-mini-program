@@ -1,2 +1,36 @@
 <!-- pages/index/index.wxml -->
-<view>测试是否渲染</view>
+<view class="container">
+  <!-- 毛玻璃搜索头 -->
+  <view class="header">
+    <van-search
+      class="search-input"
+      placeholder="🔍 搜索神来闲置商品"
+      background="transparent"
+      input-align="center"
+      show-action
+      action-text="取消"
+      bind:search="onSearch"
+    />
+  </view>
+
+  <!-- 商品网格列表 -->
+  <scroll-view scroll-y class="products-list">
+    <block wx:for="{{products}}" wx:key="id">
+      <view class="product-card" bind:click="toDetail" data-id="{{item.id}}">
+        <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="product-info">
+          <text class="product-title">{{item.title}}</text>
+          <text class="product-price">¥{{item.price}}</text>
+          <text class="product-meta">{{item.category}} · {{item.condition}}</text>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 底部 TabBar -->
+  <van-tabbar class="tabbar" active="{{activeTab}}" bind:change="onTabChange">
+    <van-tabbar-item icon="home-o">首页</van-tabbar-item>
+    <van-tabbar-item icon="plus">发布</van-tabbar-item>
+    <van-tabbar-item icon="user-o">我的</van-tabbar-item>
+  </van-tabbar>
+</view>
