@@ -1,0 +1,20 @@
+.cover-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #157EFB, #69B2F8);
+  flex-direction: column;
+}
+.logo { width: 120px; height: 120px; margin-bottom: 20px; }
+.title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.subtitle {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 8px;
+}

@@ -1,0 +1,21 @@
+Page({
+  data: {
+    activeTab: 0,
+    products: [
+      { id: '1', title: '二手高数教材', price: 18, category: '教材书籍', condition: '九成新', image: '/images/book.jpg' },
+      { id: '2', title: '九成新 iPhone 8', price: 500, category: '电子数码', condition: '九成新', image: '/images/phone.jpg' },
+      { id: '3', title: '宿舍学习台灯', price: 30, category: '生活用品', condition: '全新', image: '/images/lamp.jpg' }
+    ]
+  },
+  toDetail(e) {
+    wx.navigateTo({ url: `/pages/detail/detail?id=${e.currentTarget.dataset.id}` });
+  },
+  onTabChange(e) {
+    const idx = e.detail;
+    if (idx === 1) wx.navigateTo({ url: '/pages/publish/publish' });
+    else if (idx === 2) wx.navigateTo({ url: '/pages/mine/mine' });
+  },
+  onSearch(e) {
+    console.log('搜索关键词', e.detail);
+  }
+});

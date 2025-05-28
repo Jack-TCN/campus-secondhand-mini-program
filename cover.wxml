@@ -1,0 +1,5 @@
+<view class="cover-container">
+  <image class="logo" src="/images/logo.png" mode="aspectFit"/>
+  <text class="title">神来闲置</text>
+  <text class="subtitle">Campus Secondhand Trading</text>
+</view>

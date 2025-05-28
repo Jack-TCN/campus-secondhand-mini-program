@@ -1,0 +1,12 @@
+<view class="mine-container">
+  <van-nav-bar
+    title="我的"
+    left-arrow
+    bind:click-left="onBack"
+  />
+  <van-cell-group>
+    <van-cell title="我发布的商品" is-link />
+    <van-cell title="我的收藏" is-link />
+    <van-cell title="我的订单" is-link />
+  </van-cell-group>
+</view>

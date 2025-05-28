@@ -1,0 +1,35 @@
+<!-- pages/publish/publish.wxml -->
+<view class="publish-container">
+  <van-nav-bar title="发布商品" left-arrow bind:click-left="onBack" />
+  
+  <view class="form">
+    <van-field
+      label="标题"
+      placeholder="请输入商品标题"
+      value="{{form.title}}"
+      bind:input="onInput('title')"
+    />
+    <van-field
+      label="价格"
+      placeholder="请输入商品价格"
+      value="{{form.price}}"
+      type="digit"
+      bind:input="onInput('price')"
+    />
+    <van-field
+      label="描述"
+      placeholder="请输入商品描述"
+      value="{{form.desc}}"
+      type="textarea"
+      bind:input="onInput('desc')"
+    />
+    <view class="upload">
+      <image src="{{form.image}}" class="preview" />
+      <button size="small" bind:click="chooseImage">上传图片</button>
+    </view>
+  </view>
+
+  <van-button type="primary" block class="submit-btn" bind:click="submit">
+    发布
+  </van-button>
+</view>
