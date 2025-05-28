@@ -36,10 +36,27 @@ Page({
       '9成新': '90new',
       '8成新': '80new',
       '其他': 'other'
-    }
+    },
+    descLength: 0
   },
 
   onLoad(options) {
+    // 检查登录状态
+    const openid = wx.getStorageSync('openid');
+    const userInfo = wx.getStorageSync('userInfo');
+    
+    if (!openid || !userInfo) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后再发布商品',
+        showCancel: false,
+        success: () => {
+          wx.switchTab({ url: '/pages/mine/mine' });
+        }
+      });
+      return;
+    }
+    
     // 如果是编辑模式
     if (options.id && options.edit) {
       this.loadProduct(options.id);
@@ -85,7 +102,8 @@ Page({
           contactValue: product.contact.value
         },
         categoryText,
-        conditionText
+        conditionText,
+        descLength: product.desc.length
       });
       
       wx.hideLoading();
@@ -104,6 +122,22 @@ Page({
     this.setData({
       [`form.${field}`]: e.detail
     });
+  },
+
+  onDescInput(e) {
+    const value = e.detail;
+    if (value.length > 200) {
+      wx.showToast({ title: '描述不能超过200字', icon: 'none' });
+      this.setData({
+        'form.desc': value.substring(0, 200),
+        descLength: 200
+      });
+    } else {
+      this.setData({
+        'form.desc': value,
+        descLength: value.length
+      });
+    }
   },
 
   onContactTypeChange(e) {
@@ -243,15 +277,6 @@ Page({
     try {
       const userInfo = wx.getStorageSync('userInfo') || {};
       const openid = wx.getStorageSync('openid') || '';
-      
-      if (!openid) {
-        wx.hideLoading();
-        wx.showToast({ title: '请先登录', icon: 'none' });
-        setTimeout(() => {
-          wx.switchTab({ url: '/pages/mine/mine' });
-        }, 1500);
-        return;
-      }
       
       const productData = {
         title: form.title,

@@ -1,69 +1,235 @@
 /* pages/detail/detail.wxss */
-.detail-container { 
-  padding: 10px;
-  background: #f5f5f5;
+.detail-container {
   min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 120rpx;
 }
 
-.image { 
-  width: 100%; 
-  height: 200px; 
-  border-radius: 6px; 
+.nav-bar {
+  background: #fff !important;
 }
 
-.info { 
-  margin-top: 10px;
-  background: #fff;
-  padding: 15px;
-  border-radius: 8px;
+.content {
+  animation: fadeIn 0.3s ease-in;
 }
 
-.title { 
-  font-size: 20px; 
-  color: #333;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 10px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.price { 
-  font-size: 22px; 
-  color: #f60; 
-  margin-top: 5px;
-  display: block;
+/* 图片展示区 */
+.image-section {
+  position: relative;
+  background: #000;
 }
 
-.desc { 
-  font-size: 14px; 
-  color: #666; 
-  margin-top: 8px;
-  line-height: 1.6;
+.single-image {
+  width: 100%;
+  height: 750rpx;
 }
 
-.actions {
-  display: flex;
-  margin-top: 20px;
-  padding: 0 10px;
+.main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-.btn-chat, .btn-pay {
-  flex: 1;
-  height: 40px;
-  line-height: 40px;
-  text-align: center;
-  border-radius: 4px;
-  font-size: 14px;
+.image-swiper {
+  width: 100%;
+  height: 750rpx;
 }
 
-.btn-chat {
-  margin-right: 8px;
-  background: #fff;
-  color: #667eea;
-  border: 1px solid #667eea;
+.swiper-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-.btn-pay {
-  background: #667eea;
+.image-counter {
+  position: absolute;
+  bottom: 30rpx;
+  right: 30rpx;
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+}
+
+/* 商品信息卡片 */
+.info-card {
+  background: #fff;
+  padding: 30rpx;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.price-section {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 20rpx;
+}
+
+.price {
+  font-size: 48rpx;
+  color: #ff4444;
+  font-weight: bold;
+  margin-right: 20rpx;
+}
+
+.original-price {
+  font-size: 28rpx;
+  color: #999;
+  text-decoration: line-through;
+  margin-right: auto;
+}
+
+.price-tags {
+  display: flex;
+  gap: 10rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.stats-row {
+  display: flex;
+  align-items: center;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.stat-item {
+  margin-right: 30rpx;
+  display: flex;
+  align-items: center;
+}
+
+.publish-time {
+  margin-left: auto;
+}
+
+/* 商品描述卡片 */
+.desc-card {
+  background: #fff;
+  padding: 30rpx;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.card-header van-icon {
+  margin-right: 10rpx;
+}
+
+.desc-content {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.8;
+  display: block;
+}
+
+/* 卖家信息卡片 */
+.seller-card {
+  background: #fff;
+  padding: 25rpx 30rpx;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.seller-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.seller-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.seller-name {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.seller-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 20rpx 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 40rpx;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
   border: none;
+  padding: 0;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.action-btn text {
+  margin-top: 8rpx;
+}
+
+.contact-section {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.contact-btn {
+  padding: 20rpx 40rpx !important;
+  font-size: 30rpx !important;
+}
+
+.loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

@@ -4,87 +4,119 @@
     title="商品详情"
     left-arrow
     bind:click-left="onBack"
+    custom-class="nav-bar"
   />
 
-  <view wx:if="{{!loading && product}}">
-    <!-- 图片轮播 -->
-    <swiper 
-      class="image-swiper" 
-      indicator-dots 
-      indicator-active-color="#667eea"
-      current="{{currentImageIndex}}"
-      autoplay
-      circular
-    >
-      <swiper-item wx:for="{{product.images}}" wx:key="index">
+  <view wx:if="{{!loading && product}}" class="content">
+    <!-- 图片展示区 -->
+    <view class="image-section">
+      <!-- 单张图片时 -->
+      <view wx:if="{{product.images.length === 1}}" class="single-image">
         <image 
-          class="swiper-image" 
-          src="{{item}}" 
+          class="main-image" 
+          src="{{product.images[0]}}" 
           mode="aspectFill"
           bind:tap="previewImage"
-          data-index="{{index}}"
+          data-index="0"
         />
-      </swiper-item>
-    </swiper>
+      </view>
+      
+      <!-- 多张图片时使用轮播 -->
+      <swiper 
+        wx:else
+        class="image-swiper" 
+        indicator-dots="{{product.images.length > 1}}"
+        indicator-active-color="#667eea"
+        indicator-color="rgba(255,255,255,0.5)"
+        current="{{currentImageIndex}}"
+        bindchange="onSwiperChange"
+        autoplay="{{false}}"
+        circular
+      >
+        <swiper-item wx:for="{{product.images}}" wx:key="index">
+          <image 
+            class="swiper-image" 
+            src="{{item}}" 
+            mode="aspectFill"
+            bind:tap="previewImage"
+            data-index="{{index}}"
+          />
+        </swiper-item>
+      </swiper>
+      
+      <!-- 图片计数器 -->
+      <view wx:if="{{product.images.length > 1}}" class="image-counter">
+        {{currentImageIndex + 1}}/{{product.images.length}}
+      </view>
+    </view>
 
-    <!-- 商品信息 -->
-    <view class="product-info">
-      <view class="info-header">
-        <text class="title">{{product.title}}</text>
-        <view class="price-row">
-          <text class="price">¥{{product.price}}</text>
-          <text class="original-price" wx:if="{{product.originalPrice}}">
-            ¥{{product.originalPrice}}
-          </text>
+    <!-- 商品信息卡片 -->
+    <view class="info-card">
+      <view class="price-section">
+        <text class="price">¥{{product.price}}</text>
+        <text wx:if="{{product.originalPrice}}" class="original-price">¥{{product.originalPrice}}</text>
+        <view class="price-tags">
+          <van-tag type="primary" plain size="small">{{conditionText}}</van-tag>
+          <van-tag plain size="small">{{categoryText}}</van-tag>
         </view>
       </view>
-
-      <view class="info-tags">
-        <van-tag type="primary" plain>{{conditionText}}</van-tag>
-        <van-tag plain>{{categoryText}}</van-tag>
-        <text class="view-count">浏览 {{product.viewCount || 0}}</text>
+      
+      <text class="title">{{product.title}}</text>
+      
+      <view class="stats-row">
+        <text class="stat-item">
+          <van-icon name="eye-o" size="14px" /> {{product.viewCount || 0}}
+        </text>
+        <text class="stat-item">
+          <van-icon name="star-o" size="14px" /> {{product.likeCount || 0}}
+        </text>
+        <text class="publish-time">{{createTimeStr}}</text>
       </view>
+    </view>
 
-      <view class="info-desc">
-        <text class="desc-title">商品描述</text>
-        <text class="desc-content">{{product.desc}}</text>
+    <!-- 商品描述 -->
+    <view class="desc-card">
+      <view class="card-header">
+        <van-icon name="description" color="#667eea" />
+        <text>商品描述</text>
       </view>
+      <text class="desc-content">{{product.desc}}</text>
+    </view>
 
-      <!-- 卖家信息 -->
+    <!-- 卖家信息 -->
+    <view class="seller-card" bind:tap="viewSellerProfile">
+      <image class="seller-avatar" src="{{product.userInfo.avatarUrl || '/images/default-avatar.png'}}" />
       <view class="seller-info">
-        <image class="seller-avatar" src="{{product.userInfo.avatarUrl || '/images/default-avatar.png'}}" />
-        <view class="seller-detail">
-          <text class="seller-name">{{product.userInfo.nickName || '匿名用户'}}</text>
-          <text class="seller-school">{{product.userInfo.school || '暂无学校信息'}}</text>
-        </view>
+        <text class="seller-name">{{product.userInfo.nickName || '匿名用户'}}</text>
+        <text class="seller-desc">{{product.userInfo.school || '闲置物品，诚信交易'}}</text>
       </view>
-
-      <view class="publish-time">
-        发布于 {{createTimeStr}}
-      </view>
+      <van-icon name="arrow" color="#999" />
     </view>
   </view>
 
   <!-- 底部操作栏 -->
   <view class="bottom-bar">
-    <view class="bar-left">
-      <button class="icon-btn" bind:tap="toggleFavorite">
-        <van-icon name="{{isFavorite ? 'star' : 'star-o'}}" color="{{isFavorite ? '#f60' : '#666'}}" />
-        <text>{{isFavorite ? '已收藏' : '收藏'}}</text>
+    <view class="action-buttons">
+      <button class="action-btn" bind:tap="toggleFavorite">
+        <van-icon name="{{isFavorite ? 'star' : 'star-o'}}" color="{{isFavorite ? '#f60' : '#666'}}" size="20px" />
+        <text>收藏</text>
       </button>
-      <button class="icon-btn" open-type="share">
-        <van-icon name="share-o" />
+      <button class="action-btn" open-type="share">
+        <van-icon name="share-o" color="#666" size="20px" />
         <text>分享</text>
       </button>
     </view>
-    <van-button 
-      type="primary" 
-      round 
-      bind:click="contactSeller"
-      custom-class="contact-btn"
-    >
-      联系卖家
-    </van-button>
+    <view class="contact-section">
+      <van-button 
+        type="primary" 
+        round 
+        size="small"
+        custom-class="contact-btn"
+        bind:click="contactSeller"
+      >
+        <van-icon name="chat-o" /> 联系卖家
+      </van-button>
+    </view>
   </view>
 
   <van-loading wx:if="{{loading}}" custom-class="loading" size="24px">

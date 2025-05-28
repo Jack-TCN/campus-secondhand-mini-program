@@ -71,6 +71,31 @@ Page({
     });
   },
 
+  // 测试登录方法（仅开发环境使用）
+  testLogin() {
+    const testUserInfo = {
+      nickName: '测试用户',
+      avatarUrl: 'https://thirdwx.qlogo.cn/mmopen/vi_32/POgEwh4mIHO4nibH0KlMECNjjGxQUq24ZEaGT4poC6icRiccVGKSyXwibcPq4BWmiaIGuG1icwxaQX6grC9VemZoJ8rg/132',
+      gender: 1,
+      province: '广东',
+      city: '深圳',
+      country: '中国'
+    };
+    
+    // 模拟openid
+    const testOpenid = 'test_' + Date.now();
+    
+    wx.setStorageSync('userInfo', testUserInfo);
+    wx.setStorageSync('openid', testOpenid);
+    
+    this.setData({ 
+      userInfo: testUserInfo,
+      hasUserInfo: true
+    });
+    
+    wx.showToast({ title: '测试登录成功' });
+  },
+
   toMyProducts() {
     if (!this.checkLogin()) return;
     wx.navigateTo({ url: '/pages/myProducts/myProducts' });
@@ -83,7 +108,7 @@ Page({
 
   toHistory() {
     if (!this.checkLogin()) return;
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/history/history' });
   },
 
   toProfile() {

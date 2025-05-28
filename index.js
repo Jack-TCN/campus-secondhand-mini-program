@@ -191,6 +191,35 @@ Page({
     });
     this.loadProducts();
   },
+  // 修改搜索方法
+onSearchInput(e) {
+  const value = e.detail;
+  this.setData({ searchValue: value });
+  
+  // 防抖处理
+  if (this.searchTimer) {
+    clearTimeout(this.searchTimer);
+  }
+  
+  this.searchTimer = setTimeout(() => {
+    this.setData({ 
+      page: 1,
+      hasMore: true,
+      products: []
+    });
+    this.loadProducts();
+  }, 300); // 300ms延迟
+},
+
+onSearchClear() {
+  this.setData({ 
+    searchValue: '',
+    page: 1,
+    hasMore: true,
+    products: []
+  });
+  this.loadProducts();
+},
 
   onSearchClear() {
     this.setData({ 

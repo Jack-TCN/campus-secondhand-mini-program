@@ -61,11 +61,48 @@ Page({
       
       // 增加浏览量
       this.increaseViewCount();
+      
+      // 保存浏览历史
+      this.saveViewHistory();
+      
     } catch (err) {
       console.error(err);
       wx.showToast({ title: '加载失败', icon: 'none' });
       this.setData({ loading: false });
     }
+  },
+
+  // 在loadProduct成功后添加
+saveViewHistory() {
+  const history = wx.getStorageSync('viewHistory') || [];
+  const now = new Date();
+  
+  // 移除相同商品的旧记录
+  const newHistory = history.filter(h => h.productId !== this.data.productId);
+  
+  // 添加新记录到开头
+  newHistory.unshift({
+    productId: this.data.productId,
+    viewTime: now
+  });
+  
+  // 只保留最近30天的记录
+  const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+  const filteredHistory = newHistory.filter(h => new Date(h.viewTime) > thirtyDaysAgo);
+  
+  // 最多保留100条
+  if (filteredHistory.length > 100) {
+    filteredHistory.length = 100;
+  }
+  
+  wx.setStorageSync('viewHistory', filteredHistory);
+},
+
+  // 轮播图切换事件
+  onSwiperChange(e) {
+    this.setData({
+      currentImageIndex: e.detail.current
+    });
   },
 
   formatTime(date) {
@@ -82,6 +119,31 @@ Page({
           viewCount: db.command.inc(1)
         }
       });
+  },
+
+  saveViewHistory() {
+    const history = wx.getStorageSync('viewHistory') || [];
+    const now = new Date();
+    
+    // 移除相同商品的旧记录
+    const newHistory = history.filter(h => h.productId !== this.data.productId);
+    
+    // 添加新记录到开头
+    newHistory.unshift({
+      productId: this.data.productId,
+      viewTime: now
+    });
+    
+    // 只保留最近30天的记录
+    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const filteredHistory = newHistory.filter(h => new Date(h.viewTime) > thirtyDaysAgo);
+    
+    // 最多保留100条
+    if (filteredHistory.length > 100) {
+      filteredHistory.length = 100;
+    }
+    
+    wx.setStorageSync('viewHistory', filteredHistory);
   },
 
   async checkFavorite() {
@@ -186,6 +248,11 @@ Page({
       current: this.data.product.images[index],
       urls: this.data.product.images
     });
+  },
+
+  viewSellerProfile() {
+    // 查看卖家主页功能，暂时显示提示
+    wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
   onShareAppMessage() {

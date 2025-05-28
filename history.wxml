@@ -1,0 +1,53 @@
+<!-- pages/history/history.wxml -->
+<view class="history-container">
+  <van-nav-bar
+    title="浏览历史"
+    left-arrow
+    bind:click-left="onBack"
+  />
+
+  <view class="history-header">
+    <text class="header-title">最近30天的浏览记录</text>
+    <text class="clear-btn" bind:tap="clearHistory">清空历史</text>
+  </view>
+
+  <view wx:if="{{!loading && historyList.length === 0}}" class="empty">
+    <image src="/images/empty.png" class="empty-image" />
+    <text class="empty-text">暂无浏览记录</text>
+    <van-button plain round size="small" bind:click="goHome">去逛逛</van-button>
+  </view>
+
+  <view wx:else class="history-list">
+    <view class="date-group" wx:for="{{groupedHistory}}" wx:key="date">
+      <view class="date-header">{{item.date}}</view>
+      <view 
+        class="history-item" 
+        wx:for="{{item.items}}" 
+        wx:for-item="product"
+        wx:key="_id"
+        bind:tap="toDetail"
+        data-id="{{product._id}}"
+      >
+        <image class="item-image" src="{{product.images[0]}}" mode="aspectFill" />
+        <view class="item-info">
+          <text class="item-title">{{product.title}}</text>
+          <view class="item-bottom">
+            <text class="item-price">¥{{product.price}}</text>
+            <text class="view-time">{{product.viewTimeStr}}</text>
+          </view>
+        </view>
+        <van-icon 
+          name="delete-o" 
+          size="18px" 
+          color="#999"
+          catch:tap="removeHistory"
+          data-id="{{product._id}}"
+        />
+      </view>
+    </view>
+  </view>
+
+  <van-loading wx:if="{{loading}}" custom-class="loading" size="24px">
+    加载中...
+  </van-loading>
+</view>

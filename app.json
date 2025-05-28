@@ -5,7 +5,8 @@
     "pages/detail/detail",
     "pages/mine/mine",
     "pages/favorites/favorites",
-    "pages/myProducts/myProducts"
+    "pages/myProducts/myProducts",
+    "pages/history/history"
   ],
   "window": {
     "navigationBarTitleText": "神来闲置",

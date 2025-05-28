@@ -1,16 +1,20 @@
 <!-- pages/index/index.wxml -->
 <view class="container">
-  <!-- 搜索头 -->
-  <view class="header">
+  <!-- 修改header部分 -->
+<view class="header">
+  <view class="header-content">
+    <text class="app-title">神来闲置</text>
     <van-search
       value="{{ searchValue }}"
-      placeholder="🔍 搜索神来闲置商品"
-      background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+      placeholder="搜索你想要的宝贝"
+      background="transparent"
       shape="round"
-      bind:search="onSearch"
+      bind:change="onSearchInput"
       bind:clear="onSearchClear"
+      custom-class="search-bar"
     />
   </view>
+</view>
 
   <!-- 分类导航 -->
   <scroll-view class="category-scroll" scroll-x>

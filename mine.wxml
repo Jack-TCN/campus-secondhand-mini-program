@@ -22,6 +22,16 @@
       bindgetuserinfo="getUserInfo">
       微信授权登录
     </button>
+    
+    <!-- 开发测试登录按钮 -->
+    <button 
+      wx:if="{{!hasUserInfo}}" 
+      class="test-login-btn" 
+      bind:tap="testLogin"
+      type="warn"
+    >
+      开发测试登录
+    </button>
   </view>
 
   <!-- 功能列表 -->

@@ -47,12 +47,13 @@
     
     <van-field
       label="描述"
-      placeholder="请详细描述商品信息"
+      placeholder="请详细描述商品信息（最多200字）"
       value="{{form.desc}}"
       type="textarea"
       autosize
-      bind:change="onFieldChange"
-      data-field="desc"
+      maxlength="200"
+      bind:change="onDescInput"
+      show-word-limit
     />
     
     <!-- 联系方式 -->
