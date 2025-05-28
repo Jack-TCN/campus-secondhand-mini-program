@@ -1,6 +1,6 @@
 <!-- pages/index/index.wxml -->
 <view class="container">
-  <!-- 毛玻璃搜索头 -->
+  <!-- 搜索头 -->
   <view class="header">
     <van-search
       class="search-input"
@@ -23,11 +23,12 @@
           <text class="product-price">¥{{item.price}}</text>
           <text class="product-meta">{{item.category}} · {{item.condition}}</text>
         </view>
+        <van-tag class="tag" type="primary" plain>{{item.condition}}</van-tag>
       </view>
     </block>
   </scroll-view>
 
-  <!-- 底部 TabBar -->
+  <!-- 底部导航 -->
   <van-tabbar class="tabbar" active="{{activeTab}}" bind:change="onTabChange">
     <van-tabbar-item icon="home-o">首页</van-tabbar-item>
     <van-tabbar-item icon="plus">发布</van-tabbar-item>
