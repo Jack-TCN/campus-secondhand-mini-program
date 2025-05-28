@@ -1,78 +1,35 @@
-/* pages/publish/publish.wxss - 发布页面样式 */
-.publish-container {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
+/* pages/publish/publish.wxss */
+.publish-container { 
+  padding: 10px; 
+  background: #f5f5f5; 
+  min-height: 100vh; 
 }
 
 .form {
-  padding: 30rpx;
-  background: white;
-  margin: 20rpx;
-  border-radius: 20rpx;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-}
-
-.form .van-field {
-  margin-bottom: 20rpx;
-  border-radius: 12rpx;
-  overflow: hidden;
-  background: #f8f9ff;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.form .van-field:focus-within {
-  border-color: #667eea;
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+  background: #fff;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
 .upload {
+  padding: 15px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 40rpx;
-  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-  border-radius: 16rpx;
-  margin: 30rpx 0;
-  border: 2px dashed #667eea;
+  background: #fff;
+  margin-top: 10px;
+  border-radius: 8px;
 }
 
 .preview {
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.upload button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 25rpx;
-  padding: 20rpx 40rpx;
-  font-size: 28rpx;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-  transition: all 0.3s ease;
-}
-
-.upload button:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  margin-right: 15px;
+  background: #f0f0f0;
 }
 
 .submit-btn {
-  margin: 40rpx 30rpx;
-  border-radius: 25rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
-  font-size: 32rpx;
-  font-weight: 600;
-  padding: 30rpx 0;
-  transition: all 0.3s ease;
-}
-
-.submit-btn:active {
-  transform: translateY(4rpx);
-  box-shadow: 0 6px 24px rgba(102, 126, 234, 0.3);
+  margin-top: 30px;
+  margin-left: 15px;
+  margin-right: 15px;
 }
