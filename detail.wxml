@@ -1,21 +1,107 @@
-Page({
-  data: {
-    activeTab: 0,
-    products: [
-      { id: '1', title: '二手高数教材', price: 18, category: '教材书籍', condition: '九成新', image: '/images/book.jpg' },
-      { id: '2', title: '九成新 iPhone 8', price: 500, category: '电子数码', condition: '九成新', image: '/images/phone.jpg' },
-      { id: '3', title: '宿舍学习台灯', price: 30, category: '生活用品', condition: '全新', image: '/images/lamp.jpg' }
-    ]
-  },
-  toDetail(e) {
-    wx.navigateTo({ url: `/pages/detail/detail?id=${e.currentTarget.dataset.id}` });
-  },
-  onTabChange(e) {
-    const idx = e.detail;
-    if (idx === 1) wx.navigateTo({ url: '/pages/publish/publish' });
-    else if (idx === 2) wx.navigateTo({ url: '/pages/mine/mine' });
-  },
-  onSearch(e) {
-    console.log('搜索关键词', e.detail);
-  }
-});
+<!-- pages/detail/detail.wxml - 优化后的详情页面 -->
+<view class="detail-container">
+  <van-nav-bar 
+    left-arrow 
+    bind:click-left="onBack"
+    background="transparent"
+    z-index="100"
+    fixed
+  >
+    <view slot="right">
+      <van-icon name="share-o" size="20" color="#333" />
+      <van-icon name="like-o" size="20" color="#333" style="margin-left: 15rpx;" />
+    </view>
+  </van-nav-bar>
+
+  <scroll-view scroll-y class="detail-scroll">
+    <!-- 商品图片轮播 -->
+    <view class="image-section">
+      <swiper class="image-swiper" indicator-dots circular>
+        <block wx:for="{{product.images}}" wx:key="index">
+          <swiper-item>
+            <image src="{{item}}" class="detail-image" mode="aspectFill" />
+          </swiper-item>
+        </block>
+      </swiper>
+      <view class="image-indicator">1/{{product.images.length}}</view>
+    </view>
+
+    <!-- 商品信息 -->
+    <view class="info-section">
+      <view class="price-section">
+        <text class="detail-price">¥{{product.price}}</text>
+        <view class="price-tags">
+          <van-tag type="danger" size="small">{{product.condition}}</van-tag>
+          <van-tag type="primary" size="small" plain>{{product.category}}</van-tag>
+        </view>
+      </view>
+      
+      <text class="detail-title">{{product.title}}</text>
+      
+      <view class="meta-info">
+        <view class="meta-item">
+          <van-icon name="clock-o" size="14" />
+          <text>发布时间：{{product.createTime}}</text>
+        </view>
+        <view class="meta-item">
+          <van-icon name="eye-o" size="14" />
+          <text>浏览次数：{{product.viewCount || 0}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 商品描述 -->
+    <view class="desc-section">
+      <text class="section-title">商品描述</text>
+      <text class="detail-desc">{{product.desc}}</text>
+    </view>
+
+    <!-- 卖家信息 -->
+    <view class="seller-section">
+      <text class="section-title">卖家信息</text>
+      <view class="seller-card">
+        <image class="seller-avatar" src="{{seller.avatar}}" />
+        <view class="seller-info">
+          <text class="seller-name">{{seller.name}}</text>
+          <text class="seller-school">{{seller.school}}</text>
+        </view>
+        <van-button size="small" type="primary" plain>查看主页</van-button>
+      </view>
+    </view>
+
+    <!-- 推荐商品 -->
+    <view class="recommend-section">
+      <text class="section-title">相关推荐</text>
+      <scroll-view scroll-x class="recommend-scroll">
+        <block wx:for="{{recommendProducts}}" wx:key="id">
+          <view class="recommend-item" bind:tap="toDetail" data-id="{{item.id}}">
+            <image src="{{item.image}}" class="recommend-image" />
+            <text class="recommend-title">{{item.title}}</text>
+            <text class="recommend-price">¥{{item.price}}</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-actions">
+    <view class="action-left">
+      <view class="action-btn" bind:tap="toggleFavorite">
+        <van-icon name="{{isFavorited ? 'like' : 'like-o'}}" color="{{isFavorited ? '#ee0a24' : '#969799'}}" />
+        <text>收藏</text>
+      </view>
+      <view class="action-btn" bind:tap="startChat">
+        <van-icon name="chat-o" />
+        <text>聊天</text>
+      </view>
+    </view>
+    <view class="action-right">
+      <van-button class="buy-btn" type="primary" bind:click="mockPay">
+        立即购买
+      </van-button>
+    </view>
+  </view>
+</view>
+
+  

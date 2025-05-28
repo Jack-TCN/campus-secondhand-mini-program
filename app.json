@@ -3,15 +3,75 @@
     "pages/index/index",
     "pages/publish/publish",
     "pages/detail/detail",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/chat/chat",
+    "pages/favorites/favorites",
+    "pages/my-products/my-products",
+    "pages/orders/orders",
+    "pages/messages/messages",
+    "pages/profile/profile",
+    "pages/search/search",
+    "pages/category/category"
   ],
   "window": {
     "navigationBarTitleText": "神来闲置",
     "navigationBarBackgroundColor": "#667eea",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#f5f5f5",
-    "backgroundTextStyle": "light"
+    "backgroundColor": "#f5f7fa",
+    "backgroundTextStyle": "light",
+    "enablePullDownRefresh": true,
+    "onReachBottomDistance": 50
   },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#667eea",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "images/tab-home.png",
+        "selectedIconPath": "images/tab-home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/publish/publish",
+        "iconPath": "images/tab-publish.png",
+        "selectedIconPath": "images/tab-publish-active.png",
+        "text": "发布"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "iconPath": "images/tab-message.png",
+        "selectedIconPath": "images/tab-message-active.png",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "iconPath": "images/tab-mine.png",
+        "selectedIconPath": "images/tab-mine-active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "debug": false,
   "style": "v2",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    }
+  },
+  "cloud": true,
+  "plugins": {
+    "chatbot": {
+      "version": "1.0.0",
+      "provider": "wx8c9c8e62c258154e"
+    }
+  }
 }

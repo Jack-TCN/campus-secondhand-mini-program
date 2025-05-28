@@ -1,35 +1,127 @@
-<!-- pages/publish/publish.wxml -->
+<!-- pages/publish/publish.wxml - 优化后的发布页面 -->
 <view class="publish-container">
-  <van-nav-bar title="发布商品" left-arrow bind:click-left="onBack" />
+  <van-nav-bar 
+    title="发布商品" 
+    left-arrow 
+    bind:click-left="onBack"
+    background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    z-index="100"
+  />
   
-  <view class="form">
-    <van-field
-      label="标题"
-      placeholder="请输入商品标题"
-      value="{{form.title}}"
-      bind:input="onInput('title')"
-    />
-    <van-field
-      label="价格"
-      placeholder="请输入商品价格"
-      value="{{form.price}}"
-      type="digit"
-      bind:input="onInput('price')"
-    />
-    <van-field
-      label="描述"
-      placeholder="请输入商品描述"
-      value="{{form.desc}}"
-      type="textarea"
-      bind:input="onInput('desc')"
-    />
-    <view class="upload">
-      <image src="{{form.image}}" class="preview" />
-      <button size="small" bind:click="chooseImage">上传图片</button>
+  <scroll-view scroll-y class="publish-content">
+    <!-- 图片上传区域 -->
+    <view class="upload-section">
+      <text class="section-title">商品图片</text>
+      <view class="image-upload">
+        <block wx:for="{{form.images}}" wx:key="index">
+          <view class="upload-item">
+            <image src="{{item}}" class="uploaded-image" />
+            <view class="delete-btn" bind:tap="deleteImage" data-index="{{index}}">×</view>
+          </view>
+        </block>
+        <view class="upload-btn" bind:tap="chooseImage" wx:if="{{form.images.length < 6}}">
+          <text class="upload-icon">+</text>
+          <text class="upload-text">添加图片</text>
+        </view>
+      </view>
+      <text class="upload-tip">最多可上传6张图片，第一张为封面</text>
     </view>
-  </view>
 
-  <van-button type="primary" block class="submit-btn" bind:click="submit">
-    发布
-  </van-button>
+    <!-- 商品信息表单 -->
+    <view class="form-section">
+      <text class="section-title">商品信息</text>
+      <view class="form-group">
+        <van-field
+          label="商品标题"
+          placeholder="一句话描述你的商品"
+          value="{{form.title}}"
+          bind:input="onInput('title')"
+          maxlength="30"
+          show-word-limit
+          required
+        />
+        
+        <van-field
+          label="商品价格"
+          placeholder="请输入价格"
+          value="{{form.price}}"
+          type="digit"
+          bind:input="onInput('price')"
+          required
+        >
+          <text slot="right-icon">元</text>
+        </van-field>
+
+        <van-field
+          label="商品分类"
+          placeholder="请选择分类"
+          value="{{form.category}}"
+          readonly
+          is-link
+          bind:tap="showCategoryPicker"
+          required
+        />
+
+        <van-field
+          label="新旧程度"
+          placeholder="请选择新旧程度"
+          value="{{form.condition}}"
+          readonly
+          is-link
+          bind:tap="showConditionPicker"
+          required
+        />
+
+        <van-field
+          label="商品描述"
+          placeholder="详细描述商品的特点、购买时间、使用情况等"
+          value="{{form.desc}}"
+          type="textarea"
+          maxlength="500"
+          show-word-limit
+          autosize
+          bind:input="onInput('desc')"
+          required
+        />
+
+        <van-field
+          label="联系方式"
+          placeholder="QQ/微信/手机号"
+          value="{{form.contact}}"
+          bind:input="onInput('contact')"
+          required
+        />
+      </view>
+    </view>
+
+    <!-- 发布按钮 -->
+    <view class="submit-section">
+      <van-button 
+        type="primary" 
+        block 
+        class="submit-btn" 
+        bind:click="submit"
+        loading="{{submitting}}"
+        disabled="{{submitting}}"
+      >
+        {{submitting ? '发布中...' : '立即发布'}}
+      </van-button>
+    </view>
+  </scroll-view>
+
+  <!-- 分类选择器 -->
+  <van-action-sheet 
+    show="{{showCategory}}" 
+    title="选择分类"
+    bind:close="closeCategoryPicker"
+  >
+    <view class="category-picker">
+      <block wx:for="{{categories}}" wx:key="value">
+        <view class="picker-item" bind:tap="selectCategory" data-value="{{item.value}}">
+          <text class="picker-icon">{{item.icon}}</text>
+          <text class="picker-text">{{item.label}}</text>
+        </view>
+      </block>
+    </view>
+  </van-action-sheet>
 </view>
