@@ -1,99 +1,80 @@
-// pages/mine/mine.js - 增强版个人页面逻辑
+// pages/mine/mine.js
 Page({
   data: {
-    userInfo: {},
-    stats: {
-      published: 0,
-      sold: 0,
-      favorites: 0,
-      messages: 0
-    }
+    userInfo: null
   },
 
   onLoad() {
     this.loadUserInfo();
-    this.loadStats();
   },
 
   onShow() {
-    this.loadStats();
+    this.loadUserInfo();
   },
 
-  // 加载用户信息
   loadUserInfo() {
-    const userInfo = wx.getStorageSync('userInfo') || {};
-    this.setData({ userInfo });
+    const userInfo = wx.getStorageSync('userInfo');
+    if (userInfo) {
+      this.setData({ userInfo });
+    }
   },
 
-  // 加载统计数据
-  loadStats() {
-    const userId = wx.getStorageSync('userId');
-    if (!userId) return;
-
-    // 获取发布商品数量
-    wx.cloud.database().collection('products')
-      .where({ userId: userId })
-      .count()
-      .then(res => {
-        this.setData({ 'stats.published': res.total });
-      });
-
-    // 获取收藏数量
-    wx.cloud.database().collection('favorites')
-      .where({ userId: userId })
-      .count()
-      .then(res => {
-        this.setData({ 'stats.favorites': res.total });
-      });
-
-    // 模拟其他数据
-    this.setData({
-      'stats.sold': 3,
-      'stats.messages': 5
-    });
+  getUserInfo(e) {
+    if (e.detail.userInfo) {
+      wx.setStorageSync('userInfo', e.detail.userInfo);
+      this.setData({ userInfo: e.detail.userInfo });
+      wx.showToast({ title: '登录成功' });
+    }
   },
 
-  // 登录
-  login() {
-    wx.getUserProfile({
-      desc: '用于完善用户资料',
-      success: (res) => {
-        const userInfo = res.userInfo;
-        wx.setStorageSync('userInfo', userInfo);
-        wx.setStorageSync('userId', 'user_' + Date.now());
-        
-        this.setData({ userInfo });
-        wx.showToast({ title: '登录成功' });
-      },
-      fail: () => {
-        wx.showToast({ title: '登录失败', icon: 'none' });
-      }
-    });
+  toMyProducts() {
+    if (!this.checkLogin()) return;
+    wx.navigateTo({ url: '/pages/myProducts/myProducts' });
   },
 
-  // 退出登录
+  toFavorites() {
+    if (!this.checkLogin()) return;
+    wx.navigateTo({ url: '/pages/favorites/favorites' });
+  },
+
+  toHistory() {
+    if (!this.checkLogin()) return;
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  toProfile() {
+    if (!this.checkLogin()) return;
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  toHelp() {
+    wx.navigateTo({ url: '/pages/help/help' });
+  },
+
+  toAbout() {
+    wx.navigateTo({ url: '/pages/about/about' });
+  },
+
+  checkLogin() {
+    if (!this.data.userInfo) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return false;
+    }
+    return true;
+  },
+
   logout() {
     wx.showModal({
-      title: '确认退出',
+      title: '提示',
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.clearStorageSync();
-          this.setData({
-            userInfo: {},
-            stats: { published: 0, sold: 0, favorites: 0, messages: 0 }
-          });
+          wx.removeStorageSync('userInfo');
+          wx.removeStorageSync('openid');
+          this.setData({ userInfo: null });
           wx.showToast({ title: '已退出登录' });
         }
       }
     });
-  },
-
-  // 页面导航
-  navigateTo(e) {
-    const url = e.currentTarget.dataset.url;
-    if (url) {
-      wx.navigateTo({ url });
-    }
   }
 });

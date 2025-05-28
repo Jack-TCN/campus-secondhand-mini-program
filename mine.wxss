@@ -1,80 +1,68 @@
-/* pages/mine/mine.wxss - 我的页面样式 */
-.mine-container {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+/* pages/mine/mine.wxss */
+.mine-container { 
+  background: #f5f5f5; 
   min-height: 100vh;
 }
 
-.user-info {
+.user-section {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 60rpx 40rpx;
-  text-align: center;
-  color: white;
+  padding: 40px 20px 30px;
+  position: relative;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
 }
 
 .avatar {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 60rpx;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  margin-bottom: 20rpx;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.3);
 }
 
-.username {
-  font-size: 36rpx;
-  font-weight: 600;
-  margin-bottom: 10rpx;
-}
-
-.user-desc {
-  font-size: 24rpx;
-  opacity: 0.8;
-}
-
-.menu-list {
-  margin: 30rpx 20rpx;
-  background: white;
-  border-radius: 20rpx;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-}
-
-.menu-item {
-  padding: 40rpx;
-  border-bottom: 1px solid #f5f5f5;
+.info {
+  margin-left: 15px;
   display: flex;
-  align-items: center;
-  transition: all 0.3s ease;
+  flex-direction: column;
 }
 
-.menu-item:last-child {
-  border-bottom: none;
+.nickname {
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
 }
 
-.menu-item:active {
-  background: #f8f9ff;
+.desc {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 5px;
 }
 
-.menu-icon {
-  width: 40rpx;
-  height: 40rpx;
-  margin-right: 30rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 20rpx;
+.login-btn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
-.menu-title {
-  flex: 1;
-  font-size: 32rpx;
-  color: #2c3e50;
-  font-weight: 500;
+.cell-group {
+  margin-top: 10px;
 }
 
-.menu-arrow {
-  color: #bdc3c7;
-  font-size: 24rpx;
+.logout-btn {
+  margin: 20px;
+  background: #fff;
+  color: #f44;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
 }

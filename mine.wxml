@@ -1,12 +1,63 @@
+<!-- pages/mine/mine.wxml -->
 <view class="mine-container">
-  <van-nav-bar
-    title="我的"
-    left-arrow
-    bind:click-left="onBack"
-  />
-  <van-cell-group>
-    <van-cell title="我发布的商品" is-link />
-    <van-cell title="我的收藏" is-link />
-    <van-cell title="我的订单" is-link />
+  <!-- 用户信息区 -->
+  <view class="user-section">
+    <view class="user-info">
+      <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" />
+      <view class="info">
+        <text class="nickname">{{userInfo.nickName || '未登录'}}</text>
+        <text class="desc">{{userInfo.school || '点击登录'}}</text>
+      </view>
+    </view>
+    <button wx:if="{{!userInfo}}" class="login-btn" open-type="getUserInfo" bindgetuserinfo="getUserInfo">
+      授权登录
+    </button>
+  </view>
+
+  <!-- 功能列表 -->
+  <van-cell-group custom-class="cell-group">
+    <van-cell 
+      title="我发布的商品" 
+      is-link 
+      icon="shop-o"
+      bind:click="toMyProducts"
+    />
+    <van-cell 
+      title="我的收藏" 
+      is-link 
+      icon="star-o"
+      bind:click="toFavorites"
+    />
+    <van-cell 
+      title="浏览历史" 
+      is-link 
+      icon="clock-o"
+      bind:click="toHistory"
+    />
   </van-cell-group>
+
+  <van-cell-group custom-class="cell-group">
+    <van-cell 
+      title="个人资料" 
+      is-link 
+      icon="user-o"
+      bind:click="toProfile"
+    />
+    <van-cell 
+      title="帮助与反馈" 
+      is-link 
+      icon="question-o"
+      bind:click="toHelp"
+    />
+    <van-cell 
+      title="关于我们" 
+      is-link 
+      icon="info-o"
+      bind:click="toAbout"
+    />
+  </van-cell-group>
+
+  <view class="logout-btn" wx:if="{{userInfo}}" bindtap="logout">
+    退出登录
+  </view>
 </view>

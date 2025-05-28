@@ -1,1 +1,68 @@
-/* pages/messages/messages.wxss */
+/* pages/mine/mine.wxss */
+.mine-container { 
+  background: #f5f5f5; 
+  min-height: 100vh;
+}
+
+.user-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px 30px;
+  position: relative;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.3);
+}
+
+.info {
+  margin-left: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.nickname {
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.desc {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  margin-top: 5px;
+}
+
+.login-btn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.cell-group {
+  margin-top: 10px;
+}
+
+.logout-btn {
+  margin: 20px;
+  background: #fff;
+  color: #f44;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+}
