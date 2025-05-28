@@ -1,71 +1,79 @@
-<!-- pages/index/index.wxml - 优化后的首页 -->
+<!-- pages/index/index.wxml -->
 <view class="container">
-  <!-- 搜索头部 -->
+  <!-- 搜索头 -->
   <view class="header">
     <van-search
-      class="search-input"
-      placeholder="🔍 发现校园好物"
+      value="{{ searchValue }}"
+      placeholder="🔍 搜索神来闲置商品"
       background="transparent"
-      input-align="center"
-      show-action
-      action-text="搜索"
-      bind:search="onSearch"
       shape="round"
+      bind:search="onSearch"
     />
   </view>
 
-  <!-- 快捷分类（新增） -->
-  <view class="category-bar">
-    <scroll-view scroll-x class="category-scroll">
-      <view class="category-item active">全部</view>
-      <view class="category-item">教材书籍</view>
-      <view class="category-item">电子数码</view>
-      <view class="category-item">生活用品</view>
-      <view class="category-item">服装配饰</view>
-      <view class="category-item">运动户外</view>
-    </scroll-view>
-  </view>
+  <!-- 分类导航 -->
+  <scroll-view class="category-scroll" scroll-x>
+    <view class="category-list">
+      <view 
+        class="category-item {{currentCategory === 'all' ? 'active' : ''}}"
+        bind:tap="onCategoryTap"
+        data-category="all"
+      >
+        <text class="category-icon">🏠</text>
+        <text class="category-name">全部</text>
+      </view>
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="id"
+        class="category-item {{currentCategory === item.id ? 'active' : ''}}"
+        bind:tap="onCategoryTap"
+        data-category="{{item.id}}"
+      >
+        <text class="category-icon">{{item.icon}}</text>
+        <text class="category-name">{{item.name}}</text>
+      </view>
+    </view>
+  </scroll-view>
 
   <!-- 商品列表 -->
-  <scroll-view scroll-y class="products-list" refresher-enabled bind:refresherrefresh="onRefresh">
+  <scroll-view 
+    scroll-y 
+    class="products-scroll"
+    bindscrolltolower="onReachBottom"
+    enable-back-to-top
+  >
     <view class="products-grid">
-      <block wx:for="{{products}}" wx:key="id">
-        <view class="product-card" bind:tap="toDetail" data-id="{{item.id}}">
-          <!-- 商品图片 -->
-          <view class="product-image-wrapper">
-            <image class="product-image" src="{{item.image}}" mode="aspectFill" lazy-load />
-            <view class="product-overlay">
-              <view class="like-btn">♡</view>
-            </view>
-          </view>
-          
-          <!-- 商品信息 -->
-          <view class="product-info">
-            <text class="product-title">{{item.title}}</text>
-            <view class="price-row">
-              <text class="product-price">¥{{item.price}}</text>
-              <van-tag class="condition-tag" type="primary" plain size="small">{{item.condition}}</van-tag>
-            </view>
-            <view class="meta-row">
-              <text class="product-category">{{item.category}}</text>
-              <text class="product-time">2小时前</text>
-            </view>
+      <view 
+        wx:for="{{products}}" 
+        wx:key="_id"
+        class="product-card" 
+        bind:tap="toDetail" 
+        data-id="{{item._id}}"
+      >
+        <image class="product-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="product-info">
+          <text class="product-title">{{item.title}}</text>
+          <view class="product-bottom">
+            <text class="product-price">¥{{item.price}}</text>
+            <van-tag type="primary" plain size="small">{{item.condition}}</van-tag>
           </view>
         </view>
-      </block>
+      </view>
     </view>
     
-    <!-- 加载更多 -->
-    <view class="load-more" wx:if="{{!loading}}">
-      <text class="load-text">— 已经到底啦 —</text>
+    <!-- 加载提示 -->
+    <view class="loading-tip" wx:if="{{loading}}">
+      <van-loading size="24px">加载中...</van-loading>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && products.length > 0}}">
+      <text>没有更多了~</text>
     </view>
   </scroll-view>
 
   <!-- 底部导航 -->
-  <van-tabbar class="tabbar" active="{{activeTab}}" bind:change="onTabChange" safe-area-inset-bottom>
-    <van-tabbar-item icon="home-o" info="{{newCount > 0 ? newCount : ''}}">首页</van-tabbar-item>
+  <van-tabbar active="{{activeTab}}" bind:change="onTabChange" active-color="#667eea">
+    <van-tabbar-item icon="home-o">首页</van-tabbar-item>
     <van-tabbar-item icon="plus">发布</van-tabbar-item>
-    <van-tabbar-item icon="chat-o">消息</van-tabbar-item>
     <van-tabbar-item icon="user-o">我的</van-tabbar-item>
   </van-tabbar>
 </view>

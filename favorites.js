@@ -1,66 +1,68 @@
 // pages/favorites/favorites.js
+const db = wx.cloud.database();
+
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    favorites: [],
+    loading: false
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onLoad() {
+    this.loadFavorites();
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
   onShow() {
-
+    this.loadFavorites();
   },
 
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
+  loadFavorites() {
+    const userId = wx.getStorageSync('userId');
+    if (!userId) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
 
+    this.setData({ loading: true });
+
+    db.collection('favorites')
+      .where({ userId })
+      .orderBy('createTime', 'desc')
+      .get()
+      .then(async res => {
+        const productIds = res.data.map(item => item.productId);
+        if (productIds.length === 0) {
+          this.setData({ favorites: [], loading: false });
+          return;
+        }
+
+        // 批量获取商品信息
+        const products = await Promise.all(
+          productIds.map(id => 
+            db.collection('products').doc(id).get()
+              .then(res => ({ ...res.data, _id: id }))
+              .catch(() => null)
+          )
+        );
+
+        const validProducts = products.filter(p => p !== null);
+        this.setData({
+          favorites: validProducts,
+          loading: false
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        wx.showToast({ title: '加载失败', icon: 'none' });
+        this.setData({ loading: false });
+      });
   },
 
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
+  toDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
   },
 
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onBack() {
+    wx.navigateBack();
   }
-})
+});
