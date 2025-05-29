@@ -21,7 +21,10 @@ Page({
     page: 1,
     pageSize: 10,
     hasMore: true,
-    refreshing: false
+    refreshing: false,
+    searchTimer: null,
+    defaultProductImage: app.globalData.defaultImages.product,
+    defaultAvatar: app.globalData.defaultImages.avatar
   },
 
   onLoad() {
@@ -34,7 +37,7 @@ Page({
     const pages = getCurrentPages();
     if (pages.length > 1) {
       const prevPage = pages[pages.length - 2];
-      if (prevPage.route === 'pages/publish/publish') {
+      if (prevPage.route === 'packageA/pages/publish/publish') {
         this.onPullDownRefresh();
       }
     }
@@ -113,7 +116,9 @@ Page({
       const products = res.data.map(item => ({
         ...item,
         conditionText: conditionMap[item.condition] || item.condition,
-        createTimeStr: this.formatTime(item.createTime)
+        createTimeStr: this.formatTime(item.createTime),
+        displayImage: item.images && item.images[0] ? item.images[0] : this.data.defaultProductImage,
+        displayAvatar: item.userInfo && item.userInfo.avatarUrl ? item.userInfo.avatarUrl : this.data.defaultAvatar
       }));
       
       if (append) {
@@ -165,7 +170,7 @@ Page({
 
   toDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
+    wx.navigateTo({ url: `/packageA/pages/detail/detail?id=${id}` });
   },
 
   onTabChange(e) {
@@ -175,51 +180,68 @@ Page({
     this.setData({ activeTab: 0 });
     
     if (idx === 1) {
-      wx.navigateTo({ url: '/pages/publish/publish' });
+      // 检查登录状态
+      const openid = wx.getStorageSync('openid');
+      const userInfo = wx.getStorageSync('userInfo');
+      
+      if (!openid || !userInfo) {
+        wx.showModal({
+          title: '提示',
+          content: '请先登录后再发布商品',
+          showCancel: false,
+          confirmText: '去登录',
+          success: () => {
+            wx.switchTab({ url: '/pages/mine/mine' });
+          }
+        });
+      } else {
+        wx.navigateTo({ url: '/packageA/pages/publish/publish' });
+      }
     } else if (idx === 2) {
-      wx.navigateTo({ url: '/pages/mine/mine' });
+      wx.switchTab({ url: '/pages/mine/mine' });
     }
   },
 
-  onSearch(e) {
-    const value = e.detail.trim();
-    this.setData({ 
-      searchValue: value,
-      page: 1,
-      hasMore: true,
-      products: []
-    });
-    this.loadProducts();
+  toPublish() {
+    // 检查登录状态
+    const openid = wx.getStorageSync('openid');
+    const userInfo = wx.getStorageSync('userInfo');
+    
+    if (!openid || !userInfo) {
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后再发布商品',
+        showCancel: false,
+        confirmText: '去登录',
+        success: () => {
+          wx.switchTab({ url: '/pages/mine/mine' });
+        }
+      });
+    } else {
+      wx.navigateTo({ url: '/packageA/pages/publish/publish' });
+    }
   },
-  // 修改搜索方法
-onSearchInput(e) {
-  const value = e.detail;
-  this.setData({ searchValue: value });
-  
-  // 防抖处理
-  if (this.searchTimer) {
-    clearTimeout(this.searchTimer);
-  }
-  
-  this.searchTimer = setTimeout(() => {
-    this.setData({ 
-      page: 1,
-      hasMore: true,
-      products: []
-    });
-    this.loadProducts();
-  }, 300); // 300ms延迟
-},
 
-onSearchClear() {
-  this.setData({ 
-    searchValue: '',
-    page: 1,
-    hasMore: true,
-    products: []
-  });
-  this.loadProducts();
-},
+  onSearchInput(e) {
+    const value = e.detail;
+    this.setData({ searchValue: value });
+    
+    // 防抖处理
+    if (this.data.searchTimer) {
+      clearTimeout(this.data.searchTimer);
+    }
+    
+    const timer = setTimeout(() => {
+      this.setData({ 
+        page: 1,
+        hasMore: true,
+        products: []
+      });
+      this.loadProducts();
+    }, 300);
+    
+    this.setData({ searchTimer: timer });
+  },
 
   onSearchClear() {
     this.setData({ 
