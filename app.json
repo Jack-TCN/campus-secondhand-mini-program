@@ -1,12 +1,13 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/login/login"
   ],
   "subpackages": [
     {
       "root": "packageA",
-      "name": "product",
+      "name": "packageA",
       "pages": [
         "pages/publish/publish",
         "pages/detail/detail",
@@ -15,7 +16,7 @@
     },
     {
       "root": "packageB",
-      "name": "user",
+      "name": "packageB",
       "pages": [
         "pages/favorites/favorites",
         "pages/history/history"
