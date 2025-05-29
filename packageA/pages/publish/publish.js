@@ -12,7 +12,7 @@ Page({
       category: '',
       condition: '',
       images: [],
-      contactType: 'wechat',  // 固定为微信
+      contactType: 'wechat',
       contactValue: ''
     },
     categoryText: '请选择分类',
@@ -43,7 +43,7 @@ Page({
   },
 
   onLoad(options) {
-    // 立即检查登录状态
+    // 检查登录状态
     const openid = wx.getStorageSync('openid');
     const userInfo = wx.getStorageSync('userInfo');
     
@@ -65,7 +65,6 @@ Page({
       return;
     }
     
-    // 如果是编辑模式
     if (options.id && options.edit) {
       this.setData({ isEdit: true, productId: options.id });
       this.loadProduct(options.id);
@@ -78,7 +77,6 @@ Page({
       const res = await db.collection('products').doc(id).get();
       const product = res.data;
       
-      // 反查显示文本
       let categoryText = '请选择分类';
       let conditionText = '请选择新旧程度';
       
@@ -106,7 +104,7 @@ Page({
           condition: product.condition,
           images: product.images || [],
           contactType: 'wechat',
-          contactValue: product.contact.value
+          contactValue: product.contact ? product.contact.value : ''
         },
         categoryText,
         conditionText,
@@ -193,7 +191,6 @@ Page({
       success: res => {
         const tempFiles = res.tempFiles;
         
-        // 检查图片大小
         const validFiles = tempFiles.filter(file => {
           if (file.size > 200 * 1024) {
             wx.showToast({ title: '图片不能超过200KB', icon: 'none' });
@@ -270,9 +267,10 @@ Page({
     if (!form.desc) {
       return wx.showToast({ title: '请输入商品描述', icon: 'none' });
     }
-    if (!form.contactValue) {
-      return wx.showToast({ title: '请输入微信号', icon: 'none' });
-    }
+    // 微信号改为可选
+    // if (!form.contactValue) {
+    //   return wx.showToast({ title: '请输入微信号', icon: 'none' });
+    // }
     if (form.images.length === 0) {
       return wx.showToast({ title: '请至少上传一张图片', icon: 'none' });
     }
@@ -292,8 +290,8 @@ Page({
         condition: form.condition,
         images: form.images,
         contact: {
-          type: 'wechat',  // 固定为微信
-          value: form.contactValue
+          type: 'wechat',
+          value: form.contactValue || '未提供'
         },
         userId: openid,
         userInfo: {
