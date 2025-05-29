@@ -1,115 +1,84 @@
 <!-- packageA/pages/publish/publish.wxml -->
-<view class="publish-container">
-  <van-nav-bar title="{{isEdit ? '编辑商品' : '发布商品'}}" left-arrow bind:click-left="onBack" />
-  
-  <view class="form">
-    <van-field
-      label="标题"
-      placeholder="请输入商品标题"
-      value="{{form.title}}"
-      bind:change="onFieldChange"
-      data-field="title"
-    />
-    
-    <van-field
-      label="价格"  
-      placeholder="请输入商品价格"
-      value="{{form.price}}"
-      type="digit"
-      bind:change="onFieldChange"
-      data-field="price"
-    />
-    
-    <van-field
-      label="原价"
-      placeholder="选填，原价"
-      value="{{form.originalPrice}}"
-      type="digit"
-      bind:change="onFieldChange"
-      data-field="originalPrice"
-    />
-    
-    <van-field
-      label="分类"
-      placeholder="请选择分类"
-      value="{{categoryText}}"
-      readonly
-      is-link
-      bind:click="showCategoryPicker"
-    />
-    
-    <van-field
-      label="新旧"
-      placeholder="请选择新旧程度"
-      value="{{conditionText}}"
-      readonly
-      is-link
-      bind:click="showConditionPicker"
-    />
-    
-    <view class="desc-field">
-      <van-field
-        label="描述"
-        placeholder="请描述一下你的宝贝（200字以内）"
-        value="{{form.desc}}"
-        type="textarea"
-        autosize="{{ {minHeight: 100} }}"
-        bind:input="onDescInput"
-      />
-      <view class="desc-count {{descLength >= 180 ? 'warning' : ''}}">
-        {{descLength}} / 200
-      </view>
+<view class="container">
+  <view class="header">
+    <text class="title">发布商品</text>
+  </view>
+
+  <view class="form-section">
+    <!-- 标题 -->
+    <view class="form-item">
+      <text class="label">标题</text>
+      <input class="input" placeholder="请输入商品标题" value="{{title}}" bindinput="inputTitle" maxlength="30" />
     </view>
-    
-    <!-- 图片上传 -->
-    <view class="upload-section">
-      <text class="upload-title">商品图片（最多9张）</text>
+
+    <!-- 价格 -->
+    <view class="form-item">
+      <text class="label">价格</text>
+      <input class="input" type="digit" placeholder="请输入价格" value="{{price}}" bindinput="inputPrice" />
+    </view>
+
+    <!-- 原价 -->
+    <view class="form-item">
+      <text class="label">原价</text>
+      <input class="input" type="digit" placeholder="选填" value="{{originalPrice}}" bindinput="inputOriginalPrice" />
+    </view>
+
+    <!-- 分类选择 -->
+    <view class="form-item picker-item">
+      <text class="label">分类</text>
+      <picker mode="selector" range="{{categoryArray}}" value="{{categoryIndex}}" bindchange="bindCategoryChange">
+        <view class="picker">
+          <text wx:if="{{categoryIndex === -1}}" class="placeholder">请选择分类</text>
+          <text wx:else>{{categoryArray[categoryIndex]}}</text>
+          <text class="arrow">></text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 新旧程度选择 -->
+    <view class="form-item picker-item">
+      <text class="label">新旧</text>
+      <picker mode="selector" range="{{conditionArray}}" value="{{conditionIndex}}" bindchange="bindConditionChange">
+        <view class="picker">
+          <text wx:if="{{conditionIndex === -1}}" class="placeholder">请选择新旧程度</text>
+          <text wx:else>{{conditionArray[conditionIndex]}}</text>
+          <text class="arrow">></text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 描述 -->
+    <view class="form-item">
+      <text class="label">描述</text>
+      <textarea class="textarea" placeholder="请描述一下你的宝贝（200字以内）" value="{{describe}}" bindinput="inputDescribe" maxlength="200" />
+    </view>
+
+    <!-- 商品图片 -->
+    <view class="form-item">
+      <text class="label">商品图片（最多9张）</text>
       <view class="image-list">
-        <view wx:for="{{form.images}}" wx:key="index" class="image-item">
-          <image src="{{item}}" mode="aspectFill" />
-          <view class="delete-btn" bind:tap="deleteImage" data-index="{{index}}">
-            <van-icon name="cross" color="#fff" size="16px" />
-          </view>
+        <view wx:for="{{detailPics}}" wx:key="index" class="image-item">
+          <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-src="{{item}}" />
+          <view class="delete-btn" bindtap="deleteImage" data-index="{{index}}">×</view>
         </view>
-        <view wx:if="{{form.images.length < 9}}" class="upload-btn" bind:tap="chooseImage">
-          <van-icon name="plus" size="24px" color="#999" />
+        <view wx:if="{{detailPics.length < 9}}" class="add-image" bindtap="chooseImage">
+          <text class="add-icon">+</text>
         </view>
       </view>
     </view>
-    
+
     <!-- 联系方式 -->
-    <view class="contact-section">
-      <text class="section-title">联系方式</text>
-      <van-field
-        label="微信号"
-        placeholder="选填，便于买家联系"
-        value="{{form.contactValue}}"
-        bind:change="onFieldChange"
-        data-field="contactValue"
-      />
+    <view class="form-item">
+      <text class="label">联系方式</text>
+      <view class="contact-section">
+        <text class="contact-label">微信号</text>
+        <input class="input" placeholder="选填，便于买家联系" value="{{wechatContact}}" bindinput="inputWechat" />
+      </view>
     </view>
   </view>
-  
-  <view class="submit-btn">
-    <van-button type="primary" block bind:click="submit">
-      {{isEdit ? '保存修改' : '立即发布'}}
-    </van-button>
+
+  <!-- 发布按钮 -->
+  <view class="publish-btn-wrapper">
+    <button class="publish-btn" bindtap="publishGoods">立即发布</button>
   </view>
-  
-  <!-- 选择器 -->
-  <van-popup show="{{showCategory}}" position="bottom">
-    <van-picker
-      columns="{{categoryColumns}}"
-      bind:confirm="onCategoryConfirm"
-      bind:cancel="onCategoryCancel"
-    />
-  </van-popup>
-  
-  <van-popup show="{{showCondition}}" position="bottom">
-    <van-picker
-      columns="{{conditionColumns}}"
-      bind:confirm="onConditionConfirm"
-      bind:cancel="onConditionCancel"
-    />
-  </van-popup>
 </view>
