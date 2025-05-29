@@ -3,17 +3,18 @@
   <!-- 用户信息区 -->
   <view class="user-section">
     <view class="user-info" wx:if="{{hasUserInfo}}">
-      <image class="avatar" src="{{userInfo.avatarUrl}}" />
+      <image class="avatar" src="{{userInfo.avatarUrl || defaultAvatar}}" />
       <view class="info">
         <text class="nickname">{{userInfo.nickName}}</text>
         <text class="desc">{{userInfo.city || '欢迎使用神来闲置'}}</text>
+        <text class="dev-tag" wx:if="{{isDev}}">[开发环境]</text>
       </view>
     </view>
     
     <button wx:if="{{!hasUserInfo && canIUseGetUserProfile}}" 
       class="login-btn" 
       bind:tap="getUserProfile">
-      微信一键登录
+      {{isDev ? '开发环境登录' : '微信一键登录'}}
     </button>
     
     <button wx:elif="{{!hasUserInfo}}" 
