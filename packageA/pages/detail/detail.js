@@ -11,7 +11,9 @@ Page({
     currentImageIndex: 0,
     conditionText: '',
     categoryText: '',
-    createTimeStr: ''
+    createTimeStr: '',
+    defaultProductImage: app.globalData.defaultImages.product,
+    defaultAvatar: app.globalData.defaultImages.avatar
   },
 
   onLoad(options) {
@@ -32,7 +34,6 @@ Page({
       
       const product = res.data;
       
-      // 获取分类和新旧程度的中文名称
       const categoryMap = {
         'books': '教材书籍',
         'digital': '电子数码',
@@ -51,6 +52,15 @@ Page({
         'other': '其他'
       };
       
+      if (!product.images || product.images.length === 0) {
+        product.images = [this.data.defaultProductImage];
+      }
+      
+      if (!product.userInfo || !product.userInfo.avatarUrl) {
+        product.userInfo = product.userInfo || {};
+        product.userInfo.avatarUrl = this.data.defaultAvatar;
+      }
+      
       this.setData({
         product,
         categoryText: categoryMap[product.category] || product.category,
@@ -59,10 +69,7 @@ Page({
         loading: false
       });
       
-      // 增加浏览量
       this.increaseViewCount();
-      
-      // 保存浏览历史
       this.saveViewHistory();
       
     } catch (err) {
@@ -72,33 +79,6 @@ Page({
     }
   },
 
-  // 在loadProduct成功后添加
-saveViewHistory() {
-  const history = wx.getStorageSync('viewHistory') || [];
-  const now = new Date();
-  
-  // 移除相同商品的旧记录
-  const newHistory = history.filter(h => h.productId !== this.data.productId);
-  
-  // 添加新记录到开头
-  newHistory.unshift({
-    productId: this.data.productId,
-    viewTime: now
-  });
-  
-  // 只保留最近30天的记录
-  const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
-  const filteredHistory = newHistory.filter(h => new Date(h.viewTime) > thirtyDaysAgo);
-  
-  // 最多保留100条
-  if (filteredHistory.length > 100) {
-    filteredHistory.length = 100;
-  }
-  
-  wx.setStorageSync('viewHistory', filteredHistory);
-},
-
-  // 轮播图切换事件
   onSwiperChange(e) {
     this.setData({
       currentImageIndex: e.detail.current
@@ -125,20 +105,16 @@ saveViewHistory() {
     const history = wx.getStorageSync('viewHistory') || [];
     const now = new Date();
     
-    // 移除相同商品的旧记录
     const newHistory = history.filter(h => h.productId !== this.data.productId);
     
-    // 添加新记录到开头
     newHistory.unshift({
       productId: this.data.productId,
       viewTime: now
     });
     
-    // 只保留最近30天的记录
     const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
     const filteredHistory = newHistory.filter(h => new Date(h.viewTime) > thirtyDaysAgo);
     
-    // 最多保留100条
     if (filteredHistory.length > 100) {
       filteredHistory.length = 100;
     }
@@ -160,7 +136,7 @@ saveViewHistory() {
       
       this.setData({ isFavorite: res.data.length > 0 });
     } catch (err) {
-      console.error(err);
+      console.error('检查收藏状态失败：', err);
     }
   },
 
@@ -171,17 +147,24 @@ saveViewHistory() {
       return;
     }
 
+    wx.showLoading({ title: '处理中...' });
+
     try {
       if (this.data.isFavorite) {
         // 取消收藏
-        await db.collection('favorites')
+        const res = await db.collection('favorites')
           .where({
             userId: openid,
             productId: this.data.productId
           })
-          .remove();
+          .get();
+        
+        if (res.data.length > 0) {
+          await db.collection('favorites').doc(res.data[0]._id).remove();
+        }
         
         this.setData({ isFavorite: false });
+        wx.hideLoading();
         wx.showToast({ title: '已取消收藏' });
         
         // 更新商品收藏数
@@ -204,6 +187,7 @@ saveViewHistory() {
           });
         
         this.setData({ isFavorite: true });
+        wx.hideLoading();
         wx.showToast({ title: '收藏成功' });
         
         // 更新商品收藏数
@@ -216,7 +200,8 @@ saveViewHistory() {
           });
       }
     } catch (err) {
-      console.error(err);
+      console.error('收藏操作失败：', err);
+      wx.hideLoading();
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
@@ -228,17 +213,15 @@ saveViewHistory() {
       return;
     }
     
-    if (product.contact.type === 'wechat') {
+    if (product.contact.value && product.contact.value !== '未提供') {
       wx.setClipboardData({
         data: product.contact.value,
         success() {
           wx.showToast({ title: '微信号已复制' });
         }
       });
-    } else if (product.contact.type === 'phone') {
-      wx.makePhoneCall({
-        phoneNumber: product.contact.value
-      });
+    } else {
+      wx.showToast({ title: '卖家未提供联系方式', icon: 'none' });
     }
   },
 
@@ -250,17 +233,20 @@ saveViewHistory() {
     });
   },
 
-  viewSellerProfile() {
-    // 查看卖家主页功能，暂时显示提示
-    wx.showToast({ title: '功能开发中', icon: 'none' });
-  },
-
   onShareAppMessage() {
     const { product } = this.data;
     return {
       title: product.title,
-      path: `/pages/detail/detail?id=${product._id}`,
+      path: `/packageA/pages/detail/detail?id=${product._id}`,
       imageUrl: product.images[0]
     };
+  },
+
+  shareToFriend() {
+    // 主动触发分享
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    });
   }
 });
