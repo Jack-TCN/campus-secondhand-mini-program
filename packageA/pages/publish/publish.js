@@ -1,4 +1,4 @@
-// pages/publish/publish.js
+// packageA/pages/publish/publish.js
 const db = wx.cloud.database();
 const app = getApp();
 
@@ -12,7 +12,7 @@ Page({
       category: '',
       condition: '',
       images: [],
-      contactType: 'wechat',
+      contactType: 'wechat',  // 固定为微信
       contactValue: ''
     },
     categoryText: '请选择分类',
@@ -37,11 +37,13 @@ Page({
       '8成新': '80new',
       '其他': 'other'
     },
-    descLength: 0
+    descLength: 0,
+    isEdit: false,
+    productId: ''
   },
 
   onLoad(options) {
-    // 检查登录状态
+    // 立即检查登录状态
     const openid = wx.getStorageSync('openid');
     const userInfo = wx.getStorageSync('userInfo');
     
@@ -50,8 +52,14 @@ Page({
         title: '提示',
         content: '请先登录后再发布商品',
         showCancel: false,
+        confirmText: '去登录',
         success: () => {
-          wx.switchTab({ url: '/pages/mine/mine' });
+          wx.switchTab({ 
+            url: '/pages/mine/mine',
+            fail: () => {
+              wx.navigateBack();
+            }
+          });
         }
       });
       return;
@@ -59,6 +67,7 @@ Page({
     
     // 如果是编辑模式
     if (options.id && options.edit) {
+      this.setData({ isEdit: true, productId: options.id });
       this.loadProduct(options.id);
     }
   },
@@ -88,8 +97,6 @@ Page({
       }
       
       this.setData({
-        productId: id,
-        isEdit: true,
         form: {
           title: product.title,
           price: product.price.toString(),
@@ -98,7 +105,7 @@ Page({
           category: product.category,
           condition: product.condition,
           images: product.images || [],
-          contactType: product.contact.type,
+          contactType: 'wechat',
           contactValue: product.contact.value
         },
         categoryText,
@@ -138,13 +145,6 @@ Page({
         descLength: value.length
       });
     }
-  },
-
-  onContactTypeChange(e) {
-    this.setData({
-      'form.contactType': e.detail,
-      'form.contactValue': ''
-    });
   },
 
   showCategoryPicker() {
@@ -189,9 +189,22 @@ Page({
       count: remainCount,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
       success: res => {
         const tempFiles = res.tempFiles;
-        this.uploadImages(tempFiles.map(file => file.tempFilePath));
+        
+        // 检查图片大小
+        const validFiles = tempFiles.filter(file => {
+          if (file.size > 200 * 1024) {
+            wx.showToast({ title: '图片不能超过200KB', icon: 'none' });
+            return false;
+          }
+          return true;
+        });
+        
+        if (validFiles.length > 0) {
+          this.uploadImages(validFiles.map(file => file.tempFilePath));
+        }
       }
     });
   },
@@ -258,18 +271,10 @@ Page({
       return wx.showToast({ title: '请输入商品描述', icon: 'none' });
     }
     if (!form.contactValue) {
-      return wx.showToast({ title: '请输入联系方式', icon: 'none' });
+      return wx.showToast({ title: '请输入微信号', icon: 'none' });
     }
     if (form.images.length === 0) {
       return wx.showToast({ title: '请至少上传一张图片', icon: 'none' });
-    }
-
-    // 验证联系方式格式
-    if (form.contactType === 'phone') {
-      const phoneReg = /^1[3-9]\d{9}$/;
-      if (!phoneReg.test(form.contactValue)) {
-        return wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
-      }
     }
 
     wx.showLoading({ title: this.data.isEdit ? '保存中...' : '发布中...' });
@@ -287,13 +292,13 @@ Page({
         condition: form.condition,
         images: form.images,
         contact: {
-          type: form.contactType,
+          type: 'wechat',  // 固定为微信
           value: form.contactValue
         },
         userId: openid,
         userInfo: {
           nickName: userInfo.nickName || '匿名用户',
-          avatarUrl: userInfo.avatarUrl || '/images/default-avatar.png',
+          avatarUrl: userInfo.avatarUrl || app.globalData.defaultImages.avatar,
           school: userInfo.school || '未知学校'
         },
         status: 'on_sale',
@@ -303,11 +308,9 @@ Page({
       };
 
       if (!this.data.isEdit) {
-        // 新建商品
         productData.createTime = db.serverDate();
         await db.collection('products').add({ data: productData });
       } else {
-        // 编辑商品
         delete productData.viewCount;
         delete productData.likeCount;
         await db.collection('products').doc(this.data.productId).update({ data: productData });
@@ -316,52 +319,22 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: this.data.isEdit ? '保存成功' : '发布成功' });
       
-      // 延迟返回，让用户看到成功提示
       setTimeout(() => {
-        // 获取页面栈
-        const pages = getCurrentPages();
-        
         if (this.data.isEdit) {
-          // 编辑模式直接返回
           wx.navigateBack();
         } else {
-          // 新发布模式
-          if (pages.length > 1) {
-            // 如果有上一页，返回并刷新
-            const prevPage = pages[pages.length - 2];
-            
-            // 通知上一页需要刷新
-            if (prevPage.route === 'pages/index/index') {
-              // 如果上一页是首页，设置刷新标志
-              prevPage.setData({ needRefresh: true });
+          wx.switchTab({ 
+            url: '/pages/index/index',
+            success: () => {
+              const pages = getCurrentPages();
+              const indexPage = pages.find(p => p.route === 'pages/index/index');
+              if (indexPage && indexPage.onPullDownRefresh) {
+                setTimeout(() => {
+                  indexPage.onPullDownRefresh();
+                }, 100);
+              }
             }
-            
-            wx.navigateBack({
-              success: () => {
-                // 返回成功后，如果上一页是首页，触发刷新
-                if (prevPage.route === 'pages/index/index' && prevPage.onPullDownRefresh) {
-                  setTimeout(() => {
-                    prevPage.onPullDownRefresh();
-                  }, 100);
-                }
-              }
-            });
-          } else {
-            // 如果没有上一页，跳转到首页
-            wx.switchTab({ 
-              url: '/pages/index/index',
-              success: () => {
-                // 获取首页实例并刷新
-                const indexPages = getCurrentPages();
-                const indexPage = indexPages.find(p => p.route === 'pages/index/index');
-                if (indexPage && indexPage.onPullDownRefresh) {
-                  setTimeout(() => {
-                    indexPage.onPullDownRefresh();
-                  }, 100);
-                }
-              }
-            });
-          }
+          });
         }
       }, 1500);
       
