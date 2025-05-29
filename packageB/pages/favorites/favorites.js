@@ -1,10 +1,12 @@
-// pages/favorites/favorites.js
+// packageB/pages/favorites/favorites.js
 const db = wx.cloud.database();
+const app = getApp();
 
 Page({
   data: {
     favorites: [],
-    loading: false
+    loading: false,
+    emptyImage: app.globalData.defaultImages.empty
   },
 
   onLoad() {
@@ -48,7 +50,7 @@ Page({
       const productIds = favRes.data.map(item => item.productId);
       const products = [];
 
-      // 批量查询商品
+      // 批量查询商品（每次最多20个）
       for (let i = 0; i < productIds.length; i += 20) {
         const batch = productIds.slice(i, i + 20);
         const res = await db.collection('products')
@@ -69,17 +71,25 @@ Page({
         'other': '其他'
       };
 
-      const validProducts = products.map(item => ({
-        ...item,
-        condition: conditionMap[item.condition] || item.condition
-      }));
+      // 合并收藏记录和商品信息
+      const validProducts = favRes.data.map(fav => {
+        const product = products.find(p => p._id === fav.productId);
+        if (product) {
+          return {
+            ...product,
+            favoriteId: fav._id,
+            condition: conditionMap[product.condition] || product.condition
+          };
+        }
+        return null;
+      }).filter(item => item !== null);
 
       this.setData({
         favorites: validProducts,
         loading: false
       });
     } catch (err) {
-      console.error(err);
+      console.error('加载收藏失败：', err);
       wx.showToast({ title: '加载失败', icon: 'none' });
       this.setData({ loading: false });
     }
@@ -87,85 +97,42 @@ Page({
 
   toDetail(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
+    wx.navigateTo({ url: `/packageA/pages/detail/detail?id=${id}` });
   },
 
-  removeFavorite(e) {
+  async removeFavorite(e) {
+    const favoriteId = e.currentTarget.dataset.favoriteid;
     const productId = e.currentTarget.dataset.id;
-    const openid = wx.getStorageSync('openid');
 
     wx.showModal({
       title: '提示',
       content: '确定要取消收藏吗？',
       success: async (res) => {
         if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
           try {
-            await db.collection('favorites')
-              .where({
-                userId: openid,
-                productId: productId
-              })
-              .remove();
+            // 删除收藏记录
+            await db.collection('favorites').doc(favoriteId).remove();
+            
+            // 更新商品收藏数
+            await db.collection('products')
+              .doc(productId)
+              .update({
+                data: {
+                  likeCount: db.command.inc(-1)
+                }
+              });
 
+            wx.hideLoading();
             wx.showToast({ title: '已取消收藏' });
             this.loadFavorites();
           } catch (err) {
-            console.error(err);
+            wx.hideLoading();
+            console.error('取消收藏失败：', err);
             wx.showToast({ title: '操作失败', icon: 'none' });
           }
         }
       }
     });
-  }
-});
-  loadFavorites() {
-    const userId = wx.getStorageSync('userId');
-    if (!userId) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
-      return;
-    }
-
-    this.setData({ loading: true });
-
-    db.collection('favorites')
-      .where({ userId })
-      .orderBy('createTime', 'desc')
-      .get()
-      .then(async res => {
-        const productIds = res.data.map(item => item.productId);
-        if (productIds.length === 0) {
-          this.setData({ favorites: [], loading: false });
-          return;
-        }
-
-        // 批量获取商品信息
-        const products = await Promise.all(
-          productIds.map(id => 
-            db.collection('products').doc(id).get()
-              .then(res => ({ ...res.data, _id: id }))
-              .catch(() => null)
-          )
-        );
-
-        const validProducts = products.filter(p => p !== null);
-        this.setData({
-          favorites: validProducts,
-          loading: false
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        wx.showToast({ title: '加载失败', icon: 'none' });
-        this.setData({ loading: false });
-      });
-  },
-
-  toDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
-  },
-
-  onBack() {
-    wx.navigateBack();
   }
 });
