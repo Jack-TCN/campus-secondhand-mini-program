@@ -1,13 +1,23 @@
 // pages/mine/mine.js
+const app = getApp();
+
 Page({
   data: {
     userInfo: null,
     hasUserInfo: false,
     canIUseGetUserProfile: false,
-    myProductsCount: 0
+    myProductsCount: 0,
+    defaultAvatar: app.globalData.defaultImages.avatar,
+    isDev: false
   },
 
   onLoad() {
+    // 检查是否为开发环境
+    const systemInfo = wx.getSystemInfoSync();
+    this.setData({
+      isDev: systemInfo.platform === 'devtools'
+    });
+    
     if (wx.getUserProfile) {
       this.setData({
         canIUseGetUserProfile: true
@@ -51,12 +61,27 @@ Page({
   },
 
   getUserProfile() {
+    // 如果是开发环境且已有Mock数据，直接使用
+    if (this.data.isDev) {
+      const userInfo = wx.getStorageSync('userInfo');
+      const openid = wx.getStorageSync('openid');
+      if (userInfo && openid) {
+        this.setData({ 
+          userInfo,
+          hasUserInfo: true
+        });
+        wx.showToast({ title: '开发环境登录成功' });
+        this.getMyProductsCount();
+        return;
+      }
+    }
+    
+    // 真机环境使用微信登录
     wx.getUserProfile({
       desc: '用于完善用户资料',
       success: async (res) => {
         const userInfo = res.userInfo;
         
-        // 获取openid
         try {
           const loginRes = await wx.cloud.callFunction({
             name: 'login'
@@ -66,7 +91,6 @@ Page({
             wx.setStorageSync('openid', loginRes.result.openid);
             wx.setStorageSync('userInfo', userInfo);
             
-            // 保存到数据库
             const db = wx.cloud.database();
             await db.collection('users').add({
               data: {
@@ -82,31 +106,33 @@ Page({
               hasUserInfo: true
             });
             wx.showToast({ title: '登录成功' });
-            
-            // 登录成功后获取商品数量
             this.getMyProductsCount();
           }
         } catch (err) {
           console.error('登录失败', err);
           wx.showToast({ title: '登录失败', icon: 'none' });
         }
+      },
+      fail: (err) => {
+        console.error('获取用户信息失败', err);
+        wx.showToast({ title: '登录失败', icon: 'none' });
       }
     });
   },
 
   toMyProducts() {
     if (!this.checkLogin()) return;
-    wx.navigateTo({ url: '/pages/myProducts/myProducts' });
+    wx.navigateTo({ url: '/packageA/pages/myProducts/myProducts' });
   },
 
   toFavorites() {
     if (!this.checkLogin()) return;
-    wx.navigateTo({ url: '/pages/favorites/favorites' });
+    wx.navigateTo({ url: '/packageB/pages/favorites/favorites' });
   },
 
   toHistory() {
     if (!this.checkLogin()) return;
-    wx.navigateTo({ url: '/pages/history/history' });
+    wx.navigateTo({ url: '/packageB/pages/history/history' });
   },
 
   toProfile() {
