@@ -1,6 +1,6 @@
-<!-- pages/publish/publish.wxml -->
+<!-- packageA/pages/publish/publish.wxml -->
 <view class="publish-container">
-  <van-nav-bar title="发布商品" left-arrow bind:click-left="onBack" />
+  <van-nav-bar title="{{isEdit ? '编辑商品' : '发布商品'}}" left-arrow bind:click-left="onBack" />
   
   <view class="form">
     <van-field
@@ -12,7 +12,7 @@
     />
     
     <van-field
-      label="价格"
+      label="价格"  
       placeholder="请输入商品价格"
       value="{{form.price}}"
       type="digit"
@@ -22,98 +22,88 @@
     
     <van-field
       label="原价"
-      placeholder="选填，原始购买价格"
+      placeholder="选填，原价"
       value="{{form.originalPrice}}"
       type="digit"
       bind:change="onFieldChange"
       data-field="originalPrice"
     />
     
-    <!-- 分类选择 -->
-    <van-cell
-      title="商品分类"
-      is-link
+    <van-field
+      label="分类"
+      placeholder="请选择分类"
       value="{{categoryText}}"
+      readonly
+      is-link
       bind:click="showCategoryPicker"
     />
     
-    <!-- 新旧程度选择 -->
-    <van-cell
-      title="新旧程度"
-      is-link
+    <van-field
+      label="新旧"
+      placeholder="请选择新旧程度"
       value="{{conditionText}}"
+      readonly
+      is-link
       bind:click="showConditionPicker"
     />
     
     <van-field
       label="描述"
-      placeholder="请详细描述商品信息（最多200字）"
+      placeholder="请描述一下你的宝贝"
       value="{{form.desc}}"
       type="textarea"
       autosize
-      maxlength="200"
-      bind:change="onDescInput"
-      show-word-limit
+      bind:input="onDescInput"
     />
-    
-    <!-- 联系方式 -->
-    <van-cell title="联系方式">
-      <van-radio-group value="{{form.contactType}}" bind:change="onContactTypeChange">
-        <van-radio name="wechat">微信</van-radio>
-        <van-radio name="phone" custom-class="radio-margin">手机</van-radio>
-      </van-radio-group>
-    </van-cell>
-    
-    <van-field
-      label="{{form.contactType === 'wechat' ? '微信号' : '手机号'}}"
-      placeholder="{{form.contactType === 'wechat' ? '请输入微信号' : '请输入手机号'}}"
-      value="{{form.contactValue}}"
-      bind:change="onFieldChange"
-      data-field="contactValue"
-    />
+    <view class="desc-count">{{descLength}}/200</view>
     
     <!-- 图片上传 -->
     <view class="upload-section">
       <text class="upload-title">商品图片（最多9张）</text>
       <view class="image-list">
-        <view class="image-item" wx:for="{{form.images}}" wx:key="index">
+        <view wx:for="{{form.images}}" wx:key="index" class="image-item">
           <image src="{{item}}" mode="aspectFill" />
-          <van-icon 
-            name="close" 
-            custom-class="delete-icon"
-            bind:click="deleteImage"
-            data-index="{{index}}"
-          />
+          <view class="delete-btn" bind:tap="deleteImage" data-index="{{index}}">
+            <van-icon name="cross" color="#fff" size="16px" />
+          </view>
         </view>
-        <view class="upload-btn" wx:if="{{form.images.length < 9}}" bind:tap="chooseImage">
+        <view wx:if="{{form.images.length < 9}}" class="upload-btn" bind:tap="chooseImage">
           <van-icon name="plus" size="24px" color="#999" />
-          <text class="upload-text">添加图片</text>
         </view>
       </view>
     </view>
+    
+    <!-- 联系方式 - 只保留微信号 -->
+    <view class="contact-section">
+      <text class="section-title">联系方式</text>
+      <van-field
+        label="微信号"
+        placeholder="请输入微信号"
+        value="{{form.contactValue}}"
+        bind:change="onFieldChange"
+        data-field="contactValue"
+      />
+    </view>
   </view>
   
-  <van-button type="primary" block custom-class="submit-btn" bind:click="submit">
-    发布商品
-  </van-button>
+  <view class="submit-btn">
+    <van-button type="primary" block bind:click="submit">
+      {{isEdit ? '保存修改' : '立即发布'}}
+    </van-button>
+  </view>
   
-  <!-- 分类选择器 -->
+  <!-- 选择器 -->
   <van-popup show="{{showCategory}}" position="bottom">
     <van-picker
       columns="{{categoryColumns}}"
-      show-toolbar
-      title="选择分类"
       bind:confirm="onCategoryConfirm"
       bind:cancel="onCategoryCancel"
     />
   </van-popup>
   
-  <!-- 新旧程度选择器 -->
   <van-popup show="{{showCondition}}" position="bottom">
     <van-picker
       columns="{{conditionColumns}}"
-      show-toolbar
-      title="选择新旧程度"
       bind:confirm="onConditionConfirm"
       bind:cancel="onConditionCancel"
     />
