@@ -47,15 +47,19 @@
       bind:click="showConditionPicker"
     />
     
-    <van-field
-      label="描述"
-      placeholder="请描述一下你的宝贝"
-      value="{{form.desc}}"
-      type="textarea"
-      autosize
-      bind:input="onDescInput"
-    />
-    <view class="desc-count">{{descLength}}/200</view>
+    <view class="desc-field">
+      <van-field
+        label="描述"
+        placeholder="请描述一下你的宝贝（200字以内）"
+        value="{{form.desc}}"
+        type="textarea"
+        autosize="{{ {minHeight: 100} }}"
+        bind:input="onDescInput"
+      />
+      <view class="desc-count {{descLength >= 180 ? 'warning' : ''}}">
+        {{descLength}} / 200
+      </view>
+    </view>
     
     <!-- 图片上传 -->
     <view class="upload-section">
@@ -73,12 +77,12 @@
       </view>
     </view>
     
-    <!-- 联系方式 - 只保留微信号 -->
+    <!-- 联系方式 -->
     <view class="contact-section">
       <text class="section-title">联系方式</text>
       <van-field
         label="微信号"
-        placeholder="请输入微信号"
+        placeholder="选填，便于买家联系"
         value="{{form.contactValue}}"
         bind:change="onFieldChange"
         data-field="contactValue"
