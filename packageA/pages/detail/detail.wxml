@@ -1,4 +1,4 @@
-<!-- pages/detail/detail.wxml -->
+<!-- packageA/pages/detail/detail.wxml -->
 <view class="detail-container">
   <van-nav-bar
     title="商品详情"
