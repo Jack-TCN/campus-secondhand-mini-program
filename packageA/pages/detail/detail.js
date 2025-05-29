@@ -1,4 +1,4 @@
-// pages/detail/detail.js
+// packageA/pages/detail/detail.js
 const db = wx.cloud.database();
 const app = getApp();
 
